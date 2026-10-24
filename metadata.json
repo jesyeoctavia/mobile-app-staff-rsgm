@@ -1,0 +1,6 @@
+{
+  "name": "Sistem Triase & Asisten SOP AI Front-Desk Klinik",
+  "description": "Sistem triase front-desk klinik dengan 21 aturan keputusan SOP, wizard pendaftaran, dan Bantuan Asisten AI untuk keluhan, pencocokan data pintar, dan konsultasi SOP.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
