@@ -71,7 +71,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 <div>
                   <div className="flex items-center gap-2">
                     <span className="font-extrabold text-sm sm:text-base tracking-tight text-white leading-tight">
-                      KLINIK MEDIKA PRATAMA
+                      RSGM MARANATHA
                     </span>
                     <span className="hidden sm:inline-block px-2 py-0.2 text-[10px] font-bold uppercase tracking-wider bg-teal-900/80 text-teal-300 border border-teal-700 rounded">
                       SIMRS TRIASE
@@ -166,7 +166,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                   <ShieldCheck className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="font-bold text-sm text-white">Menu Utama Klinik</h3>
+                  <h3 className="font-bold text-sm text-white">Menu Utama RSGM Maranatha</h3>
                   <p className="text-[11px] text-slate-400">Portal SIMRS &amp; Triase</p>
                 </div>
               </div>

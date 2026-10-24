@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { PatientFormData, DecisionResult, AiUsageRecord } from '../types';
 import {
   CheckCircle2,
@@ -11,6 +11,8 @@ import {
   Clock,
   Printer,
   ShieldCheck,
+  Copy,
+  Check,
 } from 'lucide-react';
 
 interface Step5DecisionResultProps {
@@ -30,6 +32,15 @@ export const Step5DecisionResult: React.FC<Step5DecisionResultProps> = ({
   onResetWizard,
   onPrev,
 }) => {
+  const [copied, setCopied] = useState(false);
+
+  const handleCopyHandover = () => {
+    const fullText = `=== RSGM MARANATHA - CATATAN SERAH TERIMA TRIASE ===\nNama Pasien: ${formData.namaPasien || '-'}\nNo RM: ${formData.nomorRekamMedis || '-'}\nPoli: ${decision.namaPoliAtauLoket}\nAntrean: ${decision.nomorAntreanFinal}\nJalur: ${decision.namaJalur}\n\n${decision.catatanSerahTerima}\n\n[STATUS PEMAKAIAN AI]\n${aiUsageList.length === 0 ? 'Bantuan AI: Tidak dipakai' : aiUsageList.map((item) => `• ${item.fiturNama}: ${item.status.toUpperCase()} (${item.detail})`).join('\n')}`;
+    navigator.clipboard.writeText(fullText);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2500);
+  };
+
   const getBadgeColors = (code: DecisionResult['kodeJalur']) => {
     switch (code) {
       case 'merah':
@@ -53,7 +64,7 @@ export const Step5DecisionResult: React.FC<Step5DecisionResultProps> = ({
           Langkah 5: Keputusan Alur Jalur Pasien &amp; Serah Terima
         </h2>
         <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
-          Hasil evaluasi deterministik 21 Aturan IF...THEN SOP klinik beserta rekap jejak Bantuan AI.
+          Hasil evaluasi deterministik 22 Aturan IF...THEN SOP RSGM Maranatha beserta rekap jejak Bantuan AI.
         </p>
       </div>
 
@@ -119,6 +130,40 @@ export const Step5DecisionResult: React.FC<Step5DecisionResultProps> = ({
             </div>
           </div>
 
+          {/* PERINGATAN RULE 15: Informasi Kesehatan Penting */}
+          {decision.rule15Alert?.triggered && (
+            <div className="p-4 bg-purple-50/90 border-2 border-purple-300 rounded-2xl space-y-1.5 shadow-xs animate-fadeIn">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="px-2.5 py-0.5 text-[11px] font-black uppercase rounded-lg bg-purple-200 text-purple-900 border border-purple-300">
+                  {decision.rule15Alert.kodeRule}
+                </span>
+                <h4 className="text-xs sm:text-sm font-bold text-purple-950">
+                  {decision.rule15Alert.judul}
+                </h4>
+              </div>
+              <p className="text-xs sm:text-sm text-purple-900 font-medium leading-relaxed">
+                {decision.rule15Alert.alasan}
+              </p>
+            </div>
+          )}
+
+          {/* PERINGATAN RULE 22 (USULAN): Tanyakan Alergi & Penyakit Menahun */}
+          {decision.rule22Alert?.triggered && (
+            <div className="p-4 bg-amber-50/90 border-2 border-amber-400 rounded-2xl space-y-1.5 shadow-xs animate-fadeIn">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="px-2.5 py-0.5 text-[11px] font-black uppercase rounded-lg bg-amber-200 text-amber-900 border border-amber-300">
+                  {decision.rule22Alert.kodeRule}
+                </span>
+                <h4 className="text-xs sm:text-sm font-bold text-amber-950">
+                  {decision.rule22Alert.judul}
+                </h4>
+              </div>
+              <p className="text-xs sm:text-sm text-amber-900 font-medium leading-relaxed">
+                {decision.rule22Alert.alasan}
+              </p>
+            </div>
+          )}
+
           {/* SOP Reasoning Explanation */}
           <div className="p-4 bg-teal-50/70 border border-teal-200 rounded-2xl">
             <h4 className="text-xs font-bold text-teal-950 uppercase tracking-wider mb-1 flex items-center gap-1.5">
@@ -158,9 +203,28 @@ export const Step5DecisionResult: React.FC<Step5DecisionResultProps> = ({
                 <FileText className="w-4 h-4 text-slate-500" />
                 Catatan Serah-Terima untuk Perawat / Dokter
               </h4>
-              <span className="text-[11px] text-slate-400">
-                Otomatis dirangkum dari keluhan &amp; keputusan
-              </span>
+              <div className="flex items-center gap-2">
+                <span className="text-[11px] text-slate-400 hidden sm:inline">
+                  Otomatis dirangkum dari keluhan &amp; keputusan
+                </span>
+                <button
+                  type="button"
+                  onClick={handleCopyHandover}
+                  className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 transition-colors"
+                >
+                  {copied ? (
+                    <>
+                      <Check className="w-3.5 h-3.5 text-emerald-600" />
+                      <span className="text-emerald-700 font-bold">Tersalin!</span>
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="w-3.5 h-3.5 text-slate-600" />
+                      <span>Salin Catatan</span>
+                    </>
+                  )}
+                </button>
+              </div>
             </div>
             <div className="bg-slate-900 text-emerald-400 p-4 rounded-2xl font-mono text-xs whitespace-pre-line leading-relaxed shadow-inner border border-slate-800">
               {decision.catatanSerahTerima}

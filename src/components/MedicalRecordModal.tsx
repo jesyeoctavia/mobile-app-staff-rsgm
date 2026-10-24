@@ -176,9 +176,52 @@ export const MedicalRecordModal: React.FC<MedicalRecordModalProps> = ({
                 </div>
               </div>
 
+              {/* RIWAYAT KESEHATAN PENTING SIMRS (Alergi, Penyakit Menahun, Obat Rutin, Sedang Hamil) */}
+              <div className="p-4 bg-indigo-50/60 border border-indigo-200 rounded-2xl space-y-3">
+                <div className="flex items-center justify-between">
+                  <h5 className="text-xs sm:text-sm font-bold text-indigo-950 flex items-center gap-2">
+                    <ShieldCheck className="w-4 h-4 text-indigo-600" />
+                    <span>Riwayat Kesehatan Penting (Tercatat di Profil Pasien)</span>
+                  </h5>
+                  <span className="text-[10px] text-slate-500 italic">
+                    *Kosong = Belum tercatat di sistem (bukan berarti tidak punya)
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-4 gap-2.5 text-xs">
+                  <div className="p-2.5 bg-white rounded-xl border border-indigo-100">
+                    <span className="text-[11px] text-slate-400 block font-medium">Alergi:</span>
+                    <strong className={currentPatient.riwayatKesehatan?.alergi ? 'text-amber-800' : 'text-slate-400 font-normal italic'}>
+                      {currentPatient.riwayatKesehatan?.alergi || 'Belum tercatat (kosong)'}
+                    </strong>
+                  </div>
+
+                  <div className="p-2.5 bg-white rounded-xl border border-indigo-100">
+                    <span className="text-[11px] text-slate-400 block font-medium">Penyakit Menahun:</span>
+                    <strong className={currentPatient.riwayatKesehatan?.penyakit_menahun ? 'text-indigo-950' : 'text-slate-400 font-normal italic'}>
+                      {currentPatient.riwayatKesehatan?.penyakit_menahun || 'Belum tercatat (kosong)'}
+                    </strong>
+                  </div>
+
+                  <div className="p-2.5 bg-white rounded-xl border border-indigo-100">
+                    <span className="text-[11px] text-slate-400 block font-medium">Obat Rutin:</span>
+                    <strong className={currentPatient.riwayatKesehatan?.obat_rutin ? 'text-indigo-950' : 'text-slate-400 font-normal italic'}>
+                      {currentPatient.riwayatKesehatan?.obat_rutin || 'Belum tercatat (kosong)'}
+                    </strong>
+                  </div>
+
+                  <div className="p-2.5 bg-white rounded-xl border border-indigo-100">
+                    <span className="text-[11px] text-slate-400 block font-medium">Sedang Hamil:</span>
+                    <strong className={currentPatient.riwayatKesehatan?.sedang_hamil === 'ya' ? 'text-emerald-700 font-bold' : 'text-slate-700'}>
+                      {currentPatient.riwayatKesehatan?.sedang_hamil === 'ya' ? 'Ya (Hamil)' : 'Tidak'}
+                    </strong>
+                  </div>
+                </div>
+              </div>
+
               {/* CRITICAL: ALERGI & KOMORBIDITAS BANNER */}
               <div className="space-y-3">
-                {currentPatient.alergi.ada ? (
+                {currentPatient.alergi.ada || currentPatient.riwayatKesehatan?.alergi ? (
                   <div className="p-4 bg-red-50 border-2 border-red-400 rounded-2xl flex items-start gap-3">
                     <AlertTriangle className="w-6 h-6 text-red-600 shrink-0 mt-0.5" />
                     <div>
@@ -188,33 +231,22 @@ export const MedicalRecordModal: React.FC<MedicalRecordModalProps> = ({
                           WASPADA
                         </span>
                       </h5>
-                      <ul className="mt-1.5 list-disc list-inside space-y-0.5 text-xs font-semibold text-red-900">
-                        {currentPatient.alergi.daftarAlergi.map((al, idx) => (
-                          <li key={idx}>{al}</li>
-                        ))}
-                      </ul>
+                      <p className="mt-1 text-xs font-bold text-red-900">
+                        {currentPatient.riwayatKesehatan?.alergi || currentPatient.alergi.daftarAlergi.join(', ')}
+                      </p>
                       <p className="text-[11px] text-red-700 mt-1 italic">
                         *Wajib dikonfirmasi sebelum dokter meresepkan antibiotik atau analgesik.
                       </p>
                     </div>
                   </div>
                 ) : (
-                  <div className="p-3 bg-emerald-50 border border-emerald-300 rounded-xl flex items-center gap-2.5 text-xs text-emerald-900">
-                    <CheckCircle className="w-4 h-4 text-emerald-600 shrink-0" />
+                  <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl flex items-center gap-2.5 text-xs text-slate-700">
+                    <HeartPulse className="w-4 h-4 text-slate-500 shrink-0" />
                     <span>
-                      <strong>Status Alergi:</strong> Tidak ada riwayat alergi obat atau makanan yang dilaporkan pasien.
+                      <strong>Status Alergi Obat:</strong> Belum ada catatan reaksi alergi obat di berkas kunjungan sebelumnya.
                     </span>
                   </div>
                 )}
-
-                {/* Komorbiditas / Riwayat Penyakit */}
-                <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl flex items-center gap-2 text-xs">
-                  <HeartPulse className="w-4 h-4 text-indigo-600 shrink-0" />
-                  <span className="text-slate-700">
-                    <strong>Komorbid / Riwayat Penyakit Terdahulu:</strong>{' '}
-                    {currentPatient.komorbid.length > 0 ? currentPatient.komorbid.join(', ') : 'Tidak ada catatan komorbid berat'}
-                  </span>
-                </div>
               </div>
 
               {/* RIWAYAT BEROBAT / KUNJUNGAN TERDAHULU */}

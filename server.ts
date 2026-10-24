@@ -26,7 +26,7 @@ const ai = new GoogleGenAI({
 });
 
 const SOP_RULES_TEXT = `
-DAFTAR PROSEDUR STANDAR OPERASIONAL (SOP) KLINIK:
+DAFTAR PROSEDUR STANDAR OPERASIONAL (SOP) RSGM MARANATHA:
 - Prosedur Gawat Darurat Medis: IF pasien gawat darurat (perdarahan tidak berhenti, sesak napas berat, nyeri dada hebat, atau penurunan kesadaran) THEN segera alihkan ke Jalur Merah / Ruang Tindakan Darurat (IGD) dan panggil dokter/perawat triase seketika.
 - Prosedur Tanda Bahaya Spesifik Gigi & Mulut: IF pasien memiliki tanda bahaya gigi/mulut (pembengkakan wajah berat/asimetris, sulit bernapas/menelan, trismus/sulit buka mulut < 1 jari) THEN rujuk segera ke dokter gigi jaga / perawat triase untuk evaluasi cepat sebelum antrean biasa.
 - Prosedur Pelayanan Pasien Prioritas: IF pasien adalah lansia (> 65 tahun), ibu hamil risiko tinggi, atau penyandang disabilitas THEN berikan nomor antrean Prioritas / Fast-Track dan sediakan tempat duduk prioritas di dekat loket.
@@ -40,6 +40,7 @@ DAFTAR PROSEDUR STANDAR OPERASIONAL (SOP) KLINIK:
 - Prosedur Penapisan Awal & Konsultasi Perawat Triase: IF keluhan pasien belum jelas, samar, atau memiliki keluhan ganda yang tumpang tindih antar-poli THEN staf TIDAK BOLEH menebak; minta arahan perawat penapis / tenaga medis jaga untuk penapisan awal.
 - Prosedur Pelayanan BPJS Kesehatan Aktif: IF pasien peserta BPJS Kesehatan aktif dengan rujukan Faskes 1 yang valid THEN proses administrasi melalui loket BPJS / penerbitan Surat Eligibilitas Peserta (SEP).
 - Prosedur Kendala Rujukan & Kepesertaan BPJS: IF pasien peserta BPJS dengan masa berlaku rujukan habis atau kartu non-aktif THEN arahkan ke loket informasi BPJS untuk perpanjangan, atau berikan opsi pendaftaran sebagai pasien umum/mandiri.
+- Prosedur Riwayat Kesehatan & Kewaspadaan Klinis (RULE 15): IF terdapat informasi kesehatan penting (alergi, penyakit menahun, obat rutin, sedang hamil) THEN catat sesuai prosedur dan teruskan kepada perawat atau dokter; keputusan tindakan medis ditentukan tenaga medis.
 - Prosedur Pelayanan Asuransi Swasta & Jaminan Perusahaan: IF pasien menggunakan Asuransi Swasta / Jaminan Perusahaan THEN lakukan verifikasi eligibilitas kartu dan konfirmasi surat jaminan (GL) sebelum pasien masuk ke poli.
 - Prosedur Jalur Cepat Pengulangan Resep Pasien Kronis: IF pasien datang hanya untuk pengulangan resep rutin obat kronis (kondisi stabil tanpa keluhan akut) THEN arahkan ke loket Jalur Cepat Farmasi / Poli Kronis tanpa perlu antre di poli umum reguler.
 - Prosedur Administrasi Medis, Surat Keterangan & Pengambilan Lab: IF pasien datang hanya untuk legalisir, surat keterangan sehat, atau pengambilan hasil laboratorium THEN arahkan ke Loket Administrasi Rekam Medis / Loket Informasi.
@@ -47,6 +48,7 @@ DAFTAR PROSEDUR STANDAR OPERASIONAL (SOP) KLINIK:
 - Prosedur Pembatalan Kunjungan & Penolakan Tindakan: IF pasien membatalkan kunjungan atau menolak tindakan pemeriksaan THEN staf wajib mencatat alasan pembatalan pada sistem dan meminta tanda tangan form penolakan/batal.
 - Prosedur Mediasi Kendala Sistem & Komplain: IF terjadi kendala sistem atau komplain pasien terkait antrean THEN alihkan komunikasi ke meja Customer Care / Supervisor Loket agar antrean utama tetap berjalan tertib.
 - Prosedur Penanganan Kuota Dokter Penuh: IF kuota dokter poli tujuan hari ini telah penuh THEN berikan alternatif dokter pengganti di poli yang sama, jadwal hari berikutnya, atau rujukan faskes jejaring bila mendesak.
+- Prosedur Kelengkapan Riwayat Pasien (RULE 22 USULAN): IF alergi atau penyakit menahun masih belum ditanyakan dan belum tercatat THEN tanyakan alergi dan penyakit menahun sebelum pasien diteruskan. Pada pasien baru berstatus paling krusial.
 `;
 
 // Helper to sanitize and extract JSON safely
@@ -69,10 +71,35 @@ app.post('/api/gemini/keluhan', async (req: Request, res: Response) => {
     }
 
     const systemInstruction = `
-Anda adalah asisten AI triase front-desk klinik yang bertugas merapikan catatan keluhan dan mendeteksi potensi tanda bahaya untuk staf loket/resepsionis.
+Anda adalah asisten AI triase front-desk RSGM Maranatha yang bertugas merapikan catatan keluhan dan mendeteksi potensi tanda bahaya untuk staf loket/resepsionis.
 
 TUGAS AI (HANYA INI):
 1. Merapikan: Dari teks bebas keluhan yang diketik staf, buat ringkasan keluhan utama dalam 1 kalimat padat dan jelas, identifikasi lokasi keluhan (misal: "Gigi geraham kanan bawah", "Kepala bagian depan", "Tidak spesifik"), dan durasi (misal: "3 hari", "Sejak pagi tadi", "Tidak disebutkan").
+2. Menandai tanda bahaya: Jika teks mengandung atau mengindikasikan kondisi seperti:
+   - Perdarahan tidak berhenti
+   - Pembengkakan wajah berat / asimetris
+   - Sulit membuka mulut (trismus) atau sulit menelan
+   - Cedera kecelakaan / trauma benturan
+   Maka set tanda_bahaya: true. Jika tidak ada kondisi di atas, set tanda_bahaya: false.
+3. Saran layanan: Berikan SATU atau DUA kategori layanan yang mungkin sesuai sebagai saran (contoh: ["Poli Gigi"], ["Poli Umum"], atau ["IGD / Tindakan Darurat"]). 
+   PENTING: Jika keluhan bisa masuk lebih dari satu layanan, samar, atau tidak jelas, jangan menebak! Set perlu_arahan_petugas: true dan cantumkan dalam array saran_layanan: ["Keluhan belum jelas, minta arahan petugas berwenang"].
+4. Pertanyaan klarifikasi: Berikan maksimal 3 pertanyaan lanjutan yang sopan dan ringkas yang bisa ditanyakan staf ke pasien untuk memperjelas keluhan.
+
+LARANGAN KERAS:
+- Jangan menyebut diagnosis, nama penyakit, penyebab, atau prognosis.
+- Jangan menyarankan obat, dosis, atau tindakan medis.
+- Jangan menyatakan tingkat keparahan; cukup tandai "perlu dinilai tenaga medis" via tanda_bahaya.
+- Jika ragu, selalu arahkan bahwa keputusan ada pada petugas berwenang atau tenaga medis.
+- Gunakan bahasa Indonesia yang baik dan formal.
+
+DATA PRIVASI:
+Data yang Anda terima adalah simulasi teks keluhan saja tanpa identitas pasien dan tanpa data riwayat penyakit/kesehatan.
+
+FORMAT OUTPUT:
+Keluarkan HANYA JSON valid tanpa teks lain di luar JSON:
+{
+  "ringkasan": "string (1 kalimat ringkasan keluhan)",
+  "lokasi": "string (lokasi keluhan)",
 2. Menandai tanda bahaya: Jika teks mengandung atau mengindikasikan kondisi seperti:
    - Perdarahan tidak berhenti
    - Pembengkakan wajah berat / asimetris

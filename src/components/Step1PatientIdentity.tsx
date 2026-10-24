@@ -40,16 +40,37 @@ export const Step1PatientIdentity: React.FC<Step1PatientIdentityProps> = ({
       onChange({
         statusPasien: 'baru',
         nomorRekamMedis: '(Akan diterbitkan baru)',
+        alergiTercatat: '',
+        penyakitMenahunTercatat: '',
+        obatRutinTercatat: '',
+        sedangHamil: false,
+        statusAlergi: 'belum_ditanyakan',
+        deskripsiAlergi: '',
+        statusPenyakitMenahun: 'belum_ditanyakan',
+        deskripsiPenyakitMenahun: '',
+        statusObatRutin: 'belum_ditanyakan',
+        deskripsiObatRutin: '',
       });
     } else {
-      // Restore previous RM number!
+      // Restore previous RM number and its health history
       const restored =
         savedRmRef.current && savedRmRef.current !== '(Akan diterbitkan baru)'
           ? savedRmRef.current
           : 'RM-001049';
+      const matched = SIMULATED_PATIENTS.find((p) => p.nomorRekamMedis === restored);
       onChange({
         statusPasien: 'lama',
         nomorRekamMedis: restored,
+        alergiTercatat: matched?.riwayatKesehatan?.alergi || '',
+        penyakitMenahunTercatat: matched?.riwayatKesehatan?.penyakit_menahun || '',
+        obatRutinTercatat: matched?.riwayatKesehatan?.obat_rutin || '',
+        sedangHamil: matched?.riwayatKesehatan?.sedang_hamil === 'ya',
+        statusAlergi: matched?.riwayatKesehatan?.alergi ? 'ada' : 'belum_ditanyakan',
+        deskripsiAlergi: matched?.riwayatKesehatan?.alergi || '',
+        statusPenyakitMenahun: matched?.riwayatKesehatan?.penyakit_menahun ? 'ada' : 'belum_ditanyakan',
+        deskripsiPenyakitMenahun: matched?.riwayatKesehatan?.penyakit_menahun || '',
+        statusObatRutin: matched?.riwayatKesehatan?.obat_rutin ? 'ada' : 'belum_ditanyakan',
+        deskripsiObatRutin: matched?.riwayatKesehatan?.obat_rutin || '',
       });
     }
   };
@@ -66,6 +87,16 @@ export const Step1PatientIdentity: React.FC<Step1PatientIdentityProps> = ({
       poliTujuanAwal: p.poli === 'Poli Gigi' ? 'Poli Gigi' : 'Poli Umum',
       jenisKunjungan: 'booking',
       statusPasien: 'lama',
+      alergiTercatat: p.riwayatKesehatan?.alergi || '',
+      penyakitMenahunTercatat: p.riwayatKesehatan?.penyakit_menahun || '',
+      obatRutinTercatat: p.riwayatKesehatan?.obat_rutin || '',
+      sedangHamil: p.riwayatKesehatan?.sedang_hamil === 'ya',
+      statusAlergi: p.riwayatKesehatan?.alergi ? 'ada' : 'belum_ditanyakan',
+      deskripsiAlergi: p.riwayatKesehatan?.alergi || '',
+      statusPenyakitMenahun: p.riwayatKesehatan?.penyakit_menahun ? 'ada' : 'belum_ditanyakan',
+      deskripsiPenyakitMenahun: p.riwayatKesehatan?.penyakit_menahun || '',
+      statusObatRutin: p.riwayatKesehatan?.obat_rutin ? 'ada' : 'belum_ditanyakan',
+      deskripsiObatRutin: p.riwayatKesehatan?.obat_rutin || '',
     });
   };
 

@@ -43,10 +43,10 @@ export const Step3Complaint: React.FC<Step3ComplaintProps> = ({
       {/* Header */}
       <div>
         <h2 className="text-lg sm:text-xl font-bold text-slate-900">
-          Langkah 3: Keluhan Utama &amp; Bantuan AI
+          Langkah 3: Keluhan Utama Pasien
         </h2>
         <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
-          Ketik teks bebas keluhan pasien. Manfaatkan Bantuan AI untuk merapikan informasi dan mendeteksi tanda bahaya.
+          Ketik teks bebas keluhan pasien dan tentukan kejelasan serta poli yang sesuai.
         </p>
       </div>
 
@@ -57,7 +57,7 @@ export const Step3Complaint: React.FC<Step3ComplaintProps> = ({
             Teks Bebas Keluhan (Diktat / Input Staf Loket) *
           </label>
           <span className="text-[11px] text-slate-400">
-            Hanya teks keluhan yang dikirim ke AI (tanpa nama/identitas)
+            Privasi: Hanya teks keluhan (tanpa nama, riwayat, atau identitas pasien)
           </span>
         </div>
 
@@ -74,7 +74,7 @@ export const Step3Complaint: React.FC<Step3ComplaintProps> = ({
           className="w-full text-xs sm:text-sm border border-slate-300 rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
         />
 
-        {/* Action Button: Bantuan AI untuk Keluhan */}
+        {/* Simulasi cepat input keluhan */}
         <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
           <div className="flex gap-1.5 flex-wrap">
             <span className="text-[11px] text-slate-400 self-center">Simulasi cepat:</span>
@@ -115,25 +115,6 @@ export const Step3Complaint: React.FC<Step3ComplaintProps> = ({
               Demam &amp; Batuk (Poli Umum)
             </button>
           </div>
-
-          <button
-            type="button"
-            onClick={onGenerateComplaintAi}
-            disabled={isAiGeneratingComplaint || !formData.teksKeluhanBebas.trim()}
-            className="inline-flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-800 disabled:from-slate-300 disabled:to-slate-300 text-white rounded-xl text-xs sm:text-sm font-bold shadow-xs transition-all"
-          >
-            {isAiGeneratingComplaint ? (
-              <>
-                <Loader2 className="w-4 h-4 animate-spin text-white" />
-                <span>AI sedang menyusun...</span>
-              </>
-            ) : (
-              <>
-                <Sparkles className="w-4 h-4 text-amber-300" />
-                <span>Bantuan AI untuk Keluhan</span>
-              </>
-            )}
-          </button>
         </div>
       </div>
 

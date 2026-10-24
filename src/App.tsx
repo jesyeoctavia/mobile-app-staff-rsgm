@@ -47,6 +47,18 @@ const INITIAL_FORM_DATA: PatientFormData = {
   kuotaPoliPenuh: false,
   diluarJamLayanan: false,
 
+  // Riwayat Kesehatan Penting (Langkah 2)
+  statusAlergi: 'belum_ditanyakan',
+  deskripsiAlergi: '',
+  alergiTercatat: '',
+  statusPenyakitMenahun: 'belum_ditanyakan',
+  deskripsiPenyakitMenahun: '',
+  penyakitMenahunTercatat: '',
+  statusObatRutin: 'belum_ditanyakan',
+  deskripsiObatRutin: '',
+  obatRutinTercatat: '',
+  sedangHamil: false,
+
   // Step 3
   teksKeluhanBebas:
     'Pasien mengeluh gigi geraham bawah kanan sakit nyut-nyutan sejak 3 hari lalu, pipi agak sedikit bengkak dan agak ngilu saat minum dingin.',
@@ -114,7 +126,8 @@ export default function App() {
       prosedurSop: 'Prosedur Pemeriksaan Rutin Poli Umum Pasien Lama',
       bantuanAiStatus: '1 Digunakan',
       statusKedatangan: 'Tepat Waktu (On-Time)',
-      catatanSerahTerima: '[POLI UMUM] Pasien walk-in lama. Keluhan: "Kontrol rutin tensi bulanan".\n[STATUS PEMAKAIAN AI]\n• Fitur 1 (Merapikan Keluhan): DIGUNAKAN',
+      riwayatKesehatan: 'Alergi: tidak ada; Penyakit menahun: diabetes; Obat rutin: obat diabetes rutin; Sedang hamil: tidak',
+      catatanSerahTerima: '[POLI UMUM] Pasien walk-in lama. Keluhan: "Kontrol rutin tensi bulanan".\n[RIWAYAT KESEHATAN] Alergi: tidak ada; Penyakit menahun: diabetes; Obat rutin: obat diabetes rutin; Sedang hamil: tidak\n[PERINGATAN RULE 15] Terdapat informasi kesehatan penting (Penyakit menahun: diabetes; Obat rutin: obat diabetes rutin). Catat sesuai prosedur dan teruskan kepada perawat atau dokter; keputusan tindakan medis ditentukan tenaga medis.\n[STATUS PEMAKAIAN AI]\n• Fitur 1 (Merapikan Keluhan): DIGUNAKAN',
       aiUsageList: [
         {
           id: 'ai-init-1',
@@ -267,6 +280,16 @@ export default function App() {
       poliTujuanAwal: candidate.poli === 'Poli Gigi' ? 'Poli Gigi' : 'Poli Umum',
       jenisKunjungan: 'booking',
       statusPasien: 'lama',
+      alergiTercatat: candidate.riwayatKesehatan?.alergi || '',
+      penyakitMenahunTercatat: candidate.riwayatKesehatan?.penyakit_menahun || '',
+      obatRutinTercatat: candidate.riwayatKesehatan?.obat_rutin || '',
+      sedangHamil: candidate.riwayatKesehatan?.sedang_hamil === 'ya',
+      statusAlergi: candidate.riwayatKesehatan?.alergi ? 'ada' : 'belum_ditanyakan',
+      deskripsiAlergi: candidate.riwayatKesehatan?.alergi || '',
+      statusPenyakitMenahun: candidate.riwayatKesehatan?.penyakit_menahun ? 'ada' : 'belum_ditanyakan',
+      deskripsiPenyakitMenahun: candidate.riwayatKesehatan?.penyakit_menahun || '',
+      statusObatRutin: candidate.riwayatKesehatan?.obat_rutin ? 'ada' : 'belum_ditanyakan',
+      deskripsiObatRutin: candidate.riwayatKesehatan?.obat_rutin || '',
     }));
 
     setSelectedMedicalRecordPatient(candidate);
@@ -420,6 +443,7 @@ export default function App() {
       bantuanAiStatus: aiSummaryText,
       aiUsageList: [...aiUsageList],
       catatanSerahTerima: calculatedDecision.catatanSerahTerima,
+      riwayatKesehatan: calculatedDecision.riwayatKesehatanSummary,
     };
 
     setSessionHistory((prev) => [newSession, ...prev]);
@@ -623,6 +647,16 @@ export default function App() {
             noAntrean: `BOK-${p.nomorRekamMedis.slice(-3)}`,
             poliTujuanAwal: p.poli === 'Poli Gigi' ? 'Poli Gigi' : 'Poli Umum',
             statusPasien: 'lama',
+            alergiTercatat: p.riwayatKesehatan?.alergi || '',
+            penyakitMenahunTercatat: p.riwayatKesehatan?.penyakit_menahun || '',
+            obatRutinTercatat: p.riwayatKesehatan?.obat_rutin || '',
+            sedangHamil: p.riwayatKesehatan?.sedang_hamil === 'ya',
+            statusAlergi: p.riwayatKesehatan?.alergi ? 'ada' : 'belum_ditanyakan',
+            deskripsiAlergi: p.riwayatKesehatan?.alergi || '',
+            statusPenyakitMenahun: p.riwayatKesehatan?.penyakit_menahun ? 'ada' : 'belum_ditanyakan',
+            deskripsiPenyakitMenahun: p.riwayatKesehatan?.penyakit_menahun || '',
+            statusObatRutin: p.riwayatKesehatan?.obat_rutin ? 'ada' : 'belum_ditanyakan',
+            deskripsiObatRutin: p.riwayatKesehatan?.obat_rutin || '',
           });
           showToast(`Pasien ${p.nama} dipilih.`);
         }}

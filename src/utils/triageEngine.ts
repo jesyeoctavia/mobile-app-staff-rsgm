@@ -1,11 +1,142 @@
 import { PatientFormData, DecisionResult } from '../types';
 
+export function evaluateHealthHistory(data: PatientFormData) {
+  // Alergi
+  let alergiText = '';
+  let alergiAda = false;
+  let alergiBelumDitanyakan = false;
+
+  if (data.alergiTercatat && data.alergiTercatat.trim()) {
+    alergiText = data.alergiTercatat.trim();
+    alergiAda = true;
+  } else if (data.statusAlergi === 'ada') {
+    alergiText = data.deskripsiAlergi?.trim() || 'Ada (alergi)';
+    alergiAda = true;
+  } else if (data.statusAlergi === 'tidak_ada') {
+    alergiText = 'tidak ada';
+  } else {
+    alergiText = 'belum ditanyakan';
+    alergiBelumDitanyakan = true;
+  }
+
+  // Penyakit Menahun
+  let penyakitMenahunText = '';
+  let penyakitMenahunAda = false;
+  let penyakitMenahunBelumDitanyakan = false;
+
+  if (data.penyakitMenahunTercatat && data.penyakitMenahunTercatat.trim()) {
+    penyakitMenahunText = data.penyakitMenahunTercatat.trim();
+    penyakitMenahunAda = true;
+  } else if (data.statusPenyakitMenahun === 'ada') {
+    penyakitMenahunText = data.deskripsiPenyakitMenahun?.trim() || 'Ada (penyakit menahun)';
+    penyakitMenahunAda = true;
+  } else if (data.statusPenyakitMenahun === 'tidak_ada') {
+    penyakitMenahunText = 'tidak ada';
+  } else {
+    penyakitMenahunText = 'belum ditanyakan';
+    penyakitMenahunBelumDitanyakan = true;
+  }
+
+  // Obat Rutin
+  let obatRutinText = '';
+  let obatRutinAda = false;
+
+  if (data.obatRutinTercatat && data.obatRutinTercatat.trim()) {
+    obatRutinText = data.obatRutinTercatat.trim();
+    obatRutinAda = true;
+  } else if (data.statusObatRutin === 'ada') {
+    obatRutinText = data.deskripsiObatRutin?.trim() || 'Ada (obat rutin)';
+    obatRutinAda = true;
+  } else if (data.statusObatRutin === 'tidak_ada') {
+    obatRutinText = 'tidak ada';
+  } else {
+    obatRutinText = 'belum ditanyakan';
+  }
+
+  const sedangHamil = Boolean(data.sedangHamil);
+
+  // Ada informasi kesehatan penting?
+  const hasImportantHealthInfo = alergiAda || penyakitMenahunAda || obatRutinAda || sedangHamil;
+
+  // Build items list for RULE 15 reason
+  const itemsFound: string[] = [];
+  if (alergiAda) itemsFound.push(`Alergi: ${alergiText}`);
+  if (penyakitMenahunAda) itemsFound.push(`Penyakit menahun: ${penyakitMenahunText}`);
+  if (obatRutinAda) itemsFound.push(`Obat rutin: ${obatRutinText}`);
+  if (sedangHamil) itemsFound.push(`Sedang hamil: Ya`);
+
+  const rule15Alasan = hasImportantHealthInfo
+    ? `Terdapat informasi kesehatan penting (${itemsFound.join('; ')}). Catat sesuai prosedur dan teruskan kepada perawat atau dokter; keputusan tindakan medis ditentukan tenaga medis.`
+    : '';
+
+  // RULE 22 check: jika alergi ATAU penyakit menahun masih "Belum ditanyakan" dan belum tercatat
+  const rule22Triggered = alergiBelumDitanyakan || penyakitMenahunBelumDitanyakan;
+  const isPasienBaru = data.statusPasien === 'baru';
+  const rule22Alasan = rule22Triggered
+    ? isPasienBaru
+      ? `Pasien baru, paling krusial. Alergi dan/atau penyakit menahun masih berstatus "Belum ditanyakan". Tanyakan Alergi dan Penyakit Menahun Sebelum Pasien Diteruskan.`
+      : `Tanyakan Alergi dan Penyakit Menahun Sebelum Pasien Diteruskan (Alergi: ${alergiText}; Penyakit menahun: ${penyakitMenahunText}).`
+    : '';
+
+  // Summary string for Handover Notes: e.g. "Alergi: penisilin; Penyakit menahun: belum ditanyakan"
+  const handoverSummary = `Alergi: ${alergiText}; Penyakit menahun: ${penyakitMenahunText}; Obat rutin: ${obatRutinText}; Sedang hamil: ${sedangHamil ? 'ya' : 'tidak'}`;
+
+  return {
+    alergiText,
+    penyakitMenahunText,
+    obatRutinText,
+    sedangHamil,
+    hasImportantHealthInfo,
+    rule15Alert: hasImportantHealthInfo
+      ? {
+          triggered: true,
+          kodeRule: 'RULE 15',
+          judul: 'Catat Sesuai Prosedur dan Teruskan kepada Perawat atau Dokter; Keputusan Tindakan Medis Ditentukan Tenaga Medis',
+          alasan: rule15Alasan,
+        }
+      : undefined,
+    rule22Alert: rule22Triggered
+      ? {
+          triggered: true,
+          kodeRule: 'RULE 22 (USULAN, belum divalidasi pakar)',
+          judul: 'Tanyakan Alergi dan Penyakit Menahun Sebelum Pasien Diteruskan',
+          alasan: rule22Alasan,
+        }
+      : undefined,
+    handoverSummary,
+  };
+}
+
+function finalizeDecision(base: DecisionResult, data: PatientFormData): DecisionResult {
+  const health = evaluateHealthHistory(data);
+  let catatan = base.catatanSerahTerima;
+  catatan += `\n[RIWAYAT KESEHATAN] ${health.handoverSummary}`;
+  if (health.rule15Alert) {
+    catatan += `\n[PERINGATAN RULE 15] ${health.rule15Alert.alasan}`;
+  }
+  if (health.rule22Alert) {
+    catatan += `\n[PERINGATAN RULE 22 (USULAN)] ${health.rule22Alert.alasan}`;
+  }
+
+  return {
+    ...base,
+    catatanSerahTerima: catatan,
+    rule15Alert: health.rule15Alert,
+    rule22Alert: health.rule22Alert,
+    riwayatKesehatanSummary: health.handoverSummary,
+  };
+}
+
 /**
- * Pure evaluation function based on the clinic's formal SOP procedures.
+ * Pure evaluation function based on RSGM Maranatha formal SOP procedures.
  * Strictly adheres to 10-minute punctuality tolerance.
  * Removes any "Aturan X" numbering; outputs formal clinical procedural naming.
  */
 export function evaluateTriageRules(data: PatientFormData): DecisionResult {
+  return finalizeDecision(evaluateCoreTriage(data), data);
+}
+
+function evaluateCoreTriage(data: PatientFormData): DecisionResult {
   // Determine arrival timing status
   let statusKedatangan: DecisionResult['statusKedatangan'] = 'Non-Booking';
   if (data.jenisKunjungan === 'booking') {
@@ -86,7 +217,7 @@ export function evaluateTriageRules(data: PatientFormData): DecisionResult {
       instruksiStaf: [
         'Alihkan komunikasi ke Supervisor Loket / Customer Care agar jalur antrean utama tidak terhambat.',
         'Lakukan pengecekan log pendaftaran sistem secara manual.',
-        'Beri penjelasan persuasif sesuai standar pelayanan prima klinik.',
+        'Beri penjelasan persuasif sesuai standar pelayanan prima RSGM Maranatha.',
       ],
       catatanSerahTerima: `[KENDALA SISTEM / KOMPLAIN] Pasien dialihkan ke Supervisor / Customer Care untuk mediasi dan verifikasi manual.`,
     };
@@ -343,7 +474,7 @@ export function evaluateTriageRules(data: PatientFormData): DecisionResult {
   if (data.jenisPenjamin === 'asuransi_swasta') {
     const targetPoli = data.poliTujuanAwal || (data.targetPoliStaf === 'gigi' ? 'Poli Gigi' : 'Poli Umum');
     return {
-      prosedurSopId: 15,
+      prosedurSopId: 23,
       namaSop: 'Prosedur Asuransi Swasta & Rekanan',
       kodeJalur: 'hijau',
       namaJalur: 'Layanan Asuransi Swasta / Korporat',

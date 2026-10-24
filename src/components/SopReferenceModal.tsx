@@ -56,7 +56,7 @@ export const SopReferenceModal: React.FC<SopReferenceModalProps> = ({ isOpen, on
                   Pedoman Prosedur Operasional Standar (SOP) Alur Pasien
                 </h3>
                 <p className="text-xs text-slate-300">
-                  Standar baku operasional triase &amp; alur pelayanan klinik
+                  Standar baku operasional triase &amp; alur pelayanan RSGM Maranatha
                 </p>
               </div>
             </div>

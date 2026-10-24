@@ -13,9 +13,15 @@ export const SIMULATED_PATIENTS: SimulatedPatient[] = [
     jenisKelamin: 'Laki-laki',
     alamat: 'Jl. Tebet Barat Dalam No. 14, Jakarta Selatan',
     golonganDarah: 'O (+)',
+    riwayatKesehatan: {
+      alergi: '',
+      penyakit_menahun: '',
+      obat_rutin: '',
+      sedang_hamil: 'tidak',
+    },
     alergi: {
-      ada: true,
-      daftarAlergi: ['Amoxicillin (Penisilin) - Ruam kulit kemerahan', 'Aspirin'],
+      ada: false,
+      daftarAlergi: [],
     },
     komorbid: ['Gastritis Erosi'],
     riwayatKunjungan: [
@@ -63,9 +69,15 @@ export const SIMULATED_PATIENTS: SimulatedPatient[] = [
     jenisKelamin: 'Perempuan',
     alamat: 'Jl. Kemang Raya No. 45, Jakarta Selatan',
     golonganDarah: 'A (+)',
+    riwayatKesehatan: {
+      alergi: 'penisilin',
+      penyakit_menahun: '',
+      obat_rutin: '',
+      sedang_hamil: 'tidak',
+    },
     alergi: {
-      ada: false,
-      daftarAlergi: [],
+      ada: true,
+      daftarAlergi: ['Penisilin'],
     },
     komorbid: ['Riwayat Vertigo Perifer'],
     riwayatKunjungan: [
@@ -97,11 +109,17 @@ export const SIMULATED_PATIENTS: SimulatedPatient[] = [
     jenisKelamin: 'Laki-laki',
     alamat: 'Jl. Kalibata Timur No. 8, Jakarta Selatan',
     golonganDarah: 'B (+)',
-    alergi: {
-      ada: true,
-      daftarAlergi: ['Asam Mefenamat - Nyeri ulu hati & mual'],
+    riwayatKesehatan: {
+      alergi: '',
+      penyakit_menahun: 'hipertensi',
+      obat_rutin: 'obat tekanan darah',
+      sedang_hamil: 'tidak',
     },
-    komorbid: ['Tidak Ada'],
+    alergi: {
+      ada: false,
+      daftarAlergi: [],
+    },
+    komorbid: ['Hipertensi'],
     riwayatKunjungan: [
       {
         tanggal: '05-06-2024',
@@ -131,11 +149,17 @@ export const SIMULATED_PATIENTS: SimulatedPatient[] = [
     jenisKelamin: 'Laki-laki',
     alamat: 'Jl. Pancoran Barat III No. 22, Jakarta Selatan',
     golonganDarah: 'O (+)',
+    riwayatKesehatan: {
+      alergi: '',
+      penyakit_menahun: 'diabetes',
+      obat_rutin: 'obat diabetes rutin',
+      sedang_hamil: 'tidak',
+    },
     alergi: {
       ada: false,
       daftarAlergi: [],
     },
-    komorbid: ['Hipertensi Stage II Rutin Kontrol', 'Hiperkolesterolemia'],
+    komorbid: ['Hipertensi Stage II Rutin Kontrol', 'Hiperkolesterolemia', 'Diabetes Melitus'],
     riwayatKunjungan: [
       {
         tanggal: '01-10-2024',
@@ -166,6 +190,12 @@ export const SIMULATED_PATIENTS: SimulatedPatient[] = [
     jenisKelamin: 'Perempuan',
     alamat: 'Jl. Pejaten Barat No. 11, Jakarta Selatan',
     golonganDarah: 'AB (+)',
+    riwayatKesehatan: {
+      alergi: 'udang',
+      penyakit_menahun: '',
+      obat_rutin: '',
+      sedang_hamil: 'ya',
+    },
     alergi: {
       ada: true,
       daftarAlergi: ['Sulfonamida / Kotrimoksazol', 'Debu & Cuaca Dingin (Rinitis)'],
@@ -201,6 +231,12 @@ export const SIMULATED_PATIENTS: SimulatedPatient[] = [
     jenisKelamin: 'Laki-laki',
     alamat: 'Jl. Pasar Minggu Raya No. 90, Jakarta Selatan',
     golonganDarah: 'A (+)',
+    riwayatKesehatan: {
+      alergi: '',
+      penyakit_menahun: '',
+      obat_rutin: '',
+      sedang_hamil: 'tidak',
+    },
     alergi: {
       ada: false,
       daftarAlergi: [],
@@ -235,6 +271,12 @@ export const SIMULATED_PATIENTS: SimulatedPatient[] = [
     jenisKelamin: 'Perempuan',
     alamat: 'Jl. Cilandak Barat No. 34, Jakarta Selatan',
     golonganDarah: 'O (+)',
+    riwayatKesehatan: {
+      alergi: '',
+      penyakit_menahun: '',
+      obat_rutin: '',
+      sedang_hamil: 'tidak',
+    },
     alergi: {
       ada: false,
       daftarAlergi: [],
@@ -269,6 +311,12 @@ export const SIMULATED_PATIENTS: SimulatedPatient[] = [
     jenisKelamin: 'Laki-laki',
     alamat: 'Jl. Mampang Prapatan VIII No. 12, Jakarta Selatan',
     golonganDarah: 'B (+)',
+    riwayatKesehatan: {
+      alergi: '',
+      penyakit_menahun: '',
+      obat_rutin: '',
+      sedang_hamil: 'tidak',
+    },
     alergi: {
       ada: false,
       daftarAlergi: [],
@@ -304,6 +352,12 @@ export const SIMULATED_PATIENTS: SimulatedPatient[] = [
     jenisKelamin: 'Perempuan',
     alamat: 'Jl. Jagakarsa Raya No. 51, Jakarta Selatan',
     golonganDarah: 'O (+)',
+    riwayatKesehatan: {
+      alergi: '',
+      penyakit_menahun: '',
+      obat_rutin: '',
+      sedang_hamil: 'tidak',
+    },
     alergi: {
       ada: false,
       daftarAlergi: [],
@@ -338,6 +392,12 @@ export const SIMULATED_PATIENTS: SimulatedPatient[] = [
     jenisKelamin: 'Laki-laki',
     alamat: 'Jl. Fatmawati Raya No. 102, Jakarta Selatan',
     golonganDarah: 'A (+)',
+    riwayatKesehatan: {
+      alergi: '',
+      penyakit_menahun: '',
+      obat_rutin: '',
+      sedang_hamil: 'tidak',
+    },
     alergi: {
       ada: false,
       daftarAlergi: [],

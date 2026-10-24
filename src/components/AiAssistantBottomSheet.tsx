@@ -613,10 +613,10 @@ export const AiAssistantBottomSheet: React.FC<AiAssistantBottomSheetProps> = ({
             <div className="space-y-4 max-w-3xl mx-auto">
               <div className="bg-purple-50 border border-purple-200 rounded-xl p-3.5">
                 <h4 className="text-xs sm:text-sm font-bold text-purple-950 mb-0.5">
-                  Konsultasi Prosedur SOP Front-Desk Klinik
+                  Konsultasi Prosedur SOP Front-Desk RSGM Maranatha
                 </h4>
                 <p className="text-xs text-purple-800">
-                  AI menjawab HANYA berlandaskan prosedur standar operasional (SOP) baku klinik, menjelaskan langkah secara lugas, dan tanpa diagnosis medis.
+                  AI menjawab HANYA berlandaskan prosedur standar operasional (SOP) baku RSGM Maranatha, menjelaskan langkah secara lugas, dan tanpa diagnosis medis.
                 </p>
               </div>
 

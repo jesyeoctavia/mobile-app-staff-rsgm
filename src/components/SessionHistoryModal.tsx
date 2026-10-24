@@ -70,9 +70,7 @@ export const SessionHistoryModal: React.FC<SessionHistoryModalProps> = ({
                       <th className="py-3 px-3.5">Waktu</th>
                       <th className="py-3 px-3.5">Pasien</th>
                       <th className="py-3 px-3.5">No Antrean</th>
-                      <th className="py-3 px-3.5">Waktu</th>
-                      <th className="py-3 px-3.5">Pasien</th>
-                      <th className="py-3 px-3.5">No Antrean</th>
+                      <th className="py-3 px-3.5">Riwayat Kesehatan</th>
                       <th className="py-3 px-3.5">Jalur &amp; Prosedur SOP</th>
                       <th className="py-3 px-3.5">Bantuan AI</th>
                       <th className="py-3 px-3.5 text-right">Aksi</th>
@@ -102,15 +100,20 @@ export const SessionHistoryModal: React.FC<SessionHistoryModalProps> = ({
                             </span>
                           )}
                         </td>
+                        <td className="py-3 px-3.5 text-xs text-slate-700 max-w-[200px]">
+                          <span className="text-[11px] line-clamp-2 font-medium">
+                            {ses.riwayatKesehatan || '-'}
+                          </span>
+                        </td>
                         <td className="py-3 px-3.5">
-                          <span className="font-bold text-slate-800 block">{ses.jalurKeputusan}</span>
-                          <span className="text-[10px] text-teal-800 font-semibold bg-teal-50 px-1.5 py-0.2 rounded border border-teal-200 inline-block mt-0.5">
+                          <span className="font-bold text-slate-800 block text-xs">{ses.jalurKeputusan}</span>
+                          <span className="text-[10px] text-teal-800 font-semibold bg-teal-50 px-1.5 py-0.2 rounded border border-teal-200 inline-block mt-0.5 line-clamp-1">
                             {ses.prosedurSop}
                           </span>
                         </td>
                         <td className="py-3 px-3.5">
                           {ses.bantuanAiStatus === 'Tidak dipakai' ? (
-                            <span className="text-slate-400 font-medium italic">
+                            <span className="text-slate-400 font-medium italic text-xs">
                               Tidak dipakai
                             </span>
                           ) : (
@@ -154,6 +157,17 @@ export const SessionHistoryModal: React.FC<SessionHistoryModalProps> = ({
                     Tutup Detail
                   </button>
                 </div>
+
+                {selectedSession.riwayatKesehatan && (
+                  <div className="p-3 bg-white border border-slate-200 rounded-xl">
+                    <span className="text-xs font-bold text-slate-700 uppercase tracking-wider block mb-1">
+                      Riwayat Kesehatan Penting:
+                    </span>
+                    <p className="text-xs text-slate-800 font-medium">
+                      {selectedSession.riwayatKesehatan}
+                    </p>
+                  </div>
+                )}
 
                 <div>
                   <span className="text-xs font-bold text-slate-700 uppercase tracking-wider block mb-1">

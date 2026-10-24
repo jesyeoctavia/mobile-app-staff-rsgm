@@ -17,6 +17,13 @@ export interface MedicalVisitRecord {
   catatanDokter?: string;
 }
 
+export interface PatientRiwayatKesehatan {
+  alergi: string; // teks, "" jika kosong/belum tercatat
+  penyakit_menahun: string; // teks, "" jika kosong/belum tercatat
+  obat_rutin: string; // teks, "" jika kosong/belum tercatat
+  sedang_hamil: 'ya' | 'tidak'; // ya / tidak
+}
+
 export interface SimulatedPatient {
   kode: string;
   nama: string;
@@ -29,6 +36,7 @@ export interface SimulatedPatient {
   jenisKelamin: 'Laki-laki' | 'Perempuan';
   alamat: string;
   golonganDarah: string;
+  riwayatKesehatan: PatientRiwayatKesehatan;
   alergi: {
     ada: boolean;
     daftarAlergi: string[]; // e.g. ["Penisilin / Amoxicillin", "Ibuprofen"]
@@ -118,6 +126,18 @@ export interface PatientFormData {
   kuotaPoliPenuh: boolean;
   diluarJamLayanan: boolean;
 
+  // Riwayat Kesehatan Penting (Langkah 2)
+  statusAlergi: 'belum_ditanyakan' | 'tidak_ada' | 'ada';
+  deskripsiAlergi: string;
+  alergiTercatat?: string;
+  statusPenyakitMenahun: 'belum_ditanyakan' | 'tidak_ada' | 'ada';
+  deskripsiPenyakitMenahun: string;
+  penyakitMenahunTercatat?: string;
+  statusObatRutin: 'belum_ditanyakan' | 'tidak_ada' | 'ada';
+  deskripsiObatRutin: string;
+  obatRutinTercatat?: string;
+  sedangHamil: boolean;
+
   // Step 3
   teksKeluhanBebas: string;
   ringkasanKeluhan: string;
@@ -136,6 +156,13 @@ export interface PatientFormData {
   kendalaKomplain: boolean;
 }
 
+export interface HealthHistoryRuleAlert {
+  triggered: boolean;
+  kodeRule: string; // 'RULE 15' | 'RULE 22 (USULAN, belum divalidasi pakar)'
+  judul: string;
+  alasan: string;
+}
+
 export interface DecisionResult {
   prosedurSopId: number;
   namaSop: string;
@@ -147,6 +174,9 @@ export interface DecisionResult {
   instruksiStaf: string[];
   catatanSerahTerima: string;
   statusKedatangan?: 'Tepat Waktu (On-Time)' | 'Terlambat (> 10 Menit)' | 'Non-Booking';
+  rule15Alert?: HealthHistoryRuleAlert;
+  rule22Alert?: HealthHistoryRuleAlert;
+  riwayatKesehatanSummary?: string;
 }
 
 export interface SessionHistoryItem {
@@ -162,6 +192,7 @@ export interface SessionHistoryItem {
   statusKedatangan?: string;
   aiUsageList: AiUsageRecord[];
   catatanSerahTerima: string;
+  riwayatKesehatan?: string;
 }
 
 export interface SopRule {

@@ -54,7 +54,7 @@ export const SOP_RULES: SopRule[] = [
     id: 8,
     judul: 'Prosedur Registrasi Pasien Baru & Penerbitan No RM',
     kategori: 'Pendaftaran & Alur',
-    kondisiIf: 'Pasien belum pernah berobat di klinik dan belum memiliki Nomor Rekam Medis',
+    kondisiIf: 'Pasien belum pernah berobat di RSGM Maranatha dan belum memiliki Nomor Rekam Medis',
     tindakanThen: 'Lakukan perekaman data identitas lengkap, buat berkas rekam medis baru di SIMRS, dan terbitkan nomor antrean poli.',
   },
   {
@@ -101,10 +101,10 @@ export const SOP_RULES: SopRule[] = [
   },
   {
     id: 15,
-    judul: 'Prosedur Pelayanan Asuransi Swasta & Jaminan Perusahaan',
-    kategori: 'Penjaminan',
-    kondisiIf: 'Pasien menggunakan jaminan Asuransi Swasta atau Perusahaan rekanan',
-    tindakanThen: 'Lakukan verifikasi eligibilitas portal asuransi dan pastikan Surat Jaminan (Guarantee Letter) telah terbit sebelum pasien diperiksa.',
+    judul: 'Catat Sesuai Prosedur dan Teruskan kepada Perawat atau Dokter; Keputusan Tindakan Medis Ditentukan Tenaga Medis',
+    kategori: 'Darurat & Triase',
+    kondisiIf: 'Terdapat informasi kesehatan penting (alergi, riwayat penyakit menahun, konsumsi obat rutin, atau sedang hamil) yang berstatus "Ada" atau tercatat',
+    tindakanThen: 'Catat informasi kesehatan penting secara cermat pada SIMRS & berkas serah-terima, lalu teruskan kepada perawat atau dokter; keputusan tindakan medis ditentukan sepenuhnya oleh tenaga medis.',
   },
   {
     id: 16,
@@ -147,5 +147,19 @@ export const SOP_RULES: SopRule[] = [
     kategori: 'Layanan Khusus & Kendala',
     kondisiIf: 'Kuota penerimaan dokter pada poli yang dituju telah mencapai batas maksimal hari ini',
     tindakanThen: 'Tawarkan opsi dokter pengganti di poli serupa, penjadwalan prioritas esok hari, atau rujukan faskes rekanan bila mendesak.',
+  },
+  {
+    id: 22,
+    judul: 'RULE 22 (USULAN, belum divalidasi pakar): Tanyakan Alergi dan Penyakit Menahun Sebelum Pasien Diteruskan',
+    kategori: 'Darurat & Triase',
+    kondisiIf: 'Alergi atau penyakit menahun masih berstatus "Belum ditanyakan" dan belum tercatat pada data profil pasien',
+    tindakanThen: 'Staf loket wajib menanyakan riwayat alergi dan penyakit menahun sebelum pasien diteruskan ke ruang periksa. Untuk pasien baru, berstatus paling krusial.',
+  },
+  {
+    id: 23,
+    judul: 'Prosedur Pelayanan Asuransi Swasta & Jaminan Perusahaan',
+    kategori: 'Penjaminan',
+    kondisiIf: 'Pasien menggunakan jaminan Asuransi Swasta atau Perusahaan rekanan',
+    tindakanThen: 'Lakukan verifikasi eligibilitas portal asuransi dan pastikan Surat Jaminan (Guarantee Letter) telah terbit sebelum pasien diperiksa.',
   },
 ];
