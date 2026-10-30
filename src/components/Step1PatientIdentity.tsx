@@ -1,5 +1,5 @@
-import React, { useRef } from 'react';
-import { PatientFormData, SimulatedPatient } from '../types';
+import React, { useRef, useState, useEffect } from 'react';
+import { PatientFormData, SimulatedPatient, HospitalAppointment } from '../types';
 import {
   User,
   Calendar,
@@ -11,8 +11,12 @@ import {
   AlertCircle,
   CheckCircle2,
   Volume2,
+  Smartphone,
+  Check,
+  RefreshCw,
 } from 'lucide-react';
 import { SIMULATED_PATIENTS } from '../data/simulatedPatients';
+import { getStoredAppointments } from '../utils/patientStorage';
 
 interface Step1PatientIdentityProps {
   formData: PatientFormData;
@@ -31,6 +35,47 @@ export const Step1PatientIdentity: React.FC<Step1PatientIdentityProps> = ({
 }) => {
   // Store backup RM number so switching to 'baru' and back to 'lama' never loses the RM number
   const savedRmRef = useRef<string>(formData.nomorRekamMedis || 'RM-001049');
+
+  // Load online appointments synchronized from Patient Portal
+  const [onlineAppointments, setOnlineAppointments] = useState<HospitalAppointment[]>([]);
+
+  useEffect(() => {
+    setOnlineAppointments(getStoredAppointments());
+    const handler = () => setOnlineAppointments(getStoredAppointments());
+    window.addEventListener('hospital-appointments-updated', handler);
+    return () => window.removeEventListener('hospital-appointments-updated', handler);
+  }, []);
+
+  const handleSelectOnlineBooking = (app: HospitalAppointment) => {
+    savedRmRef.current = app.nomorRekamMedis;
+    onChange({
+      namaPasien: app.patientNama,
+      nik: app.patientNik,
+      tanggalLahir: app.tanggalLahir,
+      nomorRekamMedis: app.nomorRekamMedis,
+      noAntrean: app.nomorAntrean,
+      jadwalBooking: `${app.tanggalKunjungan}, ${app.jamKunjungan} (${app.poli})`,
+      jamKedatangan: 'Hari ini (Tiba di Loket)',
+      menitKeterlambatan: app.menitKeterlambatan ?? 0,
+      poliTujuanAwal: app.poli,
+      targetPoliStaf: app.poli === 'Poli Gigi' ? 'gigi' : app.poli === 'Poli Gigi Anak' ? 'anak' : 'umum',
+      jenisKunjungan: 'booking',
+      statusPasien: app.nomorRekamMedis.startsWith('RM-') ? 'lama' : 'baru',
+      teksKeluhanBebas: app.keluhanUtama || '',
+      ringkasanKeluhan: app.keluhanUtama || '',
+      jenisPenjamin: app.jenisPenjamin,
+      alergiTercatat: app.riwayatKesehatan?.alergi || '',
+      penyakitMenahunTercatat: app.riwayatKesehatan?.penyakit_menahun || '',
+      obatRutinTercatat: app.riwayatKesehatan?.obat_rutin || '',
+      sedangHamil: app.riwayatKesehatan?.sedang_hamil === 'ya',
+      statusAlergi: app.riwayatKesehatan?.alergi ? 'ada' : 'belum_ditanyakan',
+      deskripsiAlergi: app.riwayatKesehatan?.alergi || '',
+      statusPenyakitMenahun: app.riwayatKesehatan?.penyakit_menahun ? 'ada' : 'belum_ditanyakan',
+      deskripsiPenyakitMenahun: app.riwayatKesehatan?.penyakit_menahun || '',
+      statusObatRutin: app.riwayatKesehatan?.obat_rutin ? 'ada' : 'belum_ditanyakan',
+      deskripsiObatRutin: app.riwayatKesehatan?.obat_rutin || '',
+    });
+  };
 
   const handleStatusChange = (newStatus: 'lama' | 'baru') => {
     if (newStatus === 'baru') {
@@ -100,8 +145,6 @@ export const Step1PatientIdentity: React.FC<Step1PatientIdentityProps> = ({
     });
   };
 
-  // Toleransi keterlambatan STRICT: <= 10 menit = On-Time, > 10 menit = Terlambat
-  const isOnTime = formData.menitKeterlambatan <= 10;
   const isBooking = formData.jenisKunjungan === 'booking';
 
   return (
@@ -112,7 +155,7 @@ export const Step1PatientIdentity: React.FC<Step1PatientIdentityProps> = ({
           Langkah 1: Identifikasi Pasien &amp; Penetapan Poli
         </h2>
         <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
-          Tentukan poli tujuan awal, jenis kedatangan, verifikasi status keterlambatan antrean, dan rekam medis pasien.
+          Tentukan poli tujuan awal, jenis kedatangan, data antrean booking online, dan status rekam medis pasien.
         </p>
       </div>
 
@@ -211,84 +254,118 @@ export const Step1PatientIdentity: React.FC<Step1PatientIdentityProps> = ({
         </div>
       </div>
 
-      {/* FITUR MONITOR KETEPATAN WAKTU & PANGGILAN ANTREAN (On-Time vs Terlambat) */}
-      {isBooking && (
-        <div
-          className={`p-4 sm:p-5 rounded-2xl border-2 transition-all ${
-            isOnTime
-              ? 'bg-emerald-50/80 border-emerald-400'
-              : 'bg-amber-50/80 border-amber-400'
-          }`}
-        >
-          <div className="flex flex-wrap items-center justify-between gap-3 border-b pb-3 mb-3 border-slate-200/60">
-            <div className="flex items-center gap-2.5">
-              <div
-                className={`p-2 rounded-xl text-white ${
-                  isOnTime ? 'bg-emerald-600' : 'bg-amber-600'
-                }`}
-              >
-                <Clock className="w-5 h-5" />
+      {/* SINKRONISASI DATA BOOKING ONLINE DARI PORTAL PASIEN */}
+      {isBooking ? (
+        <div className="bg-gradient-to-r from-teal-50 via-sky-50 to-indigo-50 border-2 border-teal-500/60 rounded-2xl p-4 sm:p-5 shadow-xs space-y-3">
+          <div className="flex flex-wrap items-center justify-between gap-2 border-b border-teal-200/60 pb-2.5">
+            <div className="flex items-center gap-2">
+              <div className="p-2 rounded-xl bg-teal-600 text-white shadow-xs">
+                <Smartphone className="w-4 h-4" />
               </div>
               <div>
-                <h4 className="font-bold text-sm sm:text-base text-slate-900">
-                  Status Waktu Kedatangan Booking (Toleransi Maksimal 10 Menit)
+                <h4 className="text-xs sm:text-sm font-black text-slate-900 flex items-center gap-2">
+                  <span>Sinkronisasi Otomatis Pasien Booking Online</span>
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-teal-600 text-white">
+                    {onlineAppointments.length} Pasien Tersedia
+                  </span>
                 </h4>
-                <p className="text-xs text-slate-600">
-                  Jadwal: <strong>{formData.jadwalBooking || 'Hari ini, 09:00 WIB'}</strong> • Waktu Datang: <strong>{formData.jamKedatangan || '08:42 WIB'}</strong>
+                <p className="text-[11px] text-slate-600">
+                  Data yang diinput pasien di <strong>Portal Pasien (POV Pasien)</strong> otomatis tersimpan. Klik pasien untuk mengisi formulir seketika tanpa ketik ulang!
                 </p>
               </div>
             </div>
 
-            {/* LIVE PUNCTUALITY BADGE */}
+            <button
+              type="button"
+              onClick={() => setOnlineAppointments(getStoredAppointments())}
+              className="p-1.5 rounded-lg text-slate-600 hover:text-teal-700 hover:bg-white/80 transition-colors flex items-center gap-1 text-xs font-semibold"
+              title="Perbarui data booking"
+            >
+              <RefreshCw className="w-3.5 h-3.5" />
+              <span>Refresh</span>
+            </button>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
+            {onlineAppointments.map((app) => {
+              const isLoaded = formData.noAntrean === app.nomorAntrean;
+              return (
+                <button
+                  key={app.id}
+                  type="button"
+                  onClick={() => handleSelectOnlineBooking(app)}
+                  className={`p-3 rounded-xl border-2 text-left transition-all relative ${
+                    isLoaded
+                      ? 'bg-teal-700 text-white border-teal-700 shadow-md ring-2 ring-teal-400'
+                      : 'bg-white hover:bg-teal-50/60 border-slate-200 hover:border-teal-400'
+                  }`}
+                >
+                  <div className="flex items-center justify-between mb-1">
+                    <span className={`font-mono font-black text-xs ${isLoaded ? 'text-teal-200' : 'text-teal-700'}`}>
+                      {app.nomorAntrean}
+                    </span>
+                    <span
+                      className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                        isLoaded
+                          ? 'bg-white/20 text-white'
+                          : app.statusPembayaran === 'Lunas'
+                          ? 'bg-emerald-100 text-emerald-800'
+                          : 'bg-amber-100 text-amber-800'
+                      }`}
+                    >
+                      {app.statusPembayaran}
+                    </span>
+                  </div>
+                  <div className={`font-bold text-xs truncate ${isLoaded ? 'text-white' : 'text-slate-900'}`}>
+                    {app.patientNama}
+                  </div>
+                  <div className={`text-[11px] mt-0.5 truncate ${isLoaded ? 'text-teal-100' : 'text-slate-500'}`}>
+                    {app.poli} • {app.jamKunjungan}
+                  </div>
+                  {isLoaded && (
+                    <div className="mt-1.5 flex items-center gap-1 text-[10px] font-bold text-teal-200">
+                      <Check className="w-3 h-3" />
+                      <span>Data Aktif Terpilih di Triase</span>
+                    </div>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      ) : (
+        <div className="bg-amber-50/80 border border-amber-300 rounded-2xl p-4 flex items-start gap-3 text-xs text-amber-900">
+          <AlertCircle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+          <div>
+            <h4 className="font-bold">Mode Pasien Walk-In (Datang Langsung ke Loket RSGM)</h4>
+            <p className="mt-0.5 text-amber-800">
+              Pasien walk-in belum reservasi melalui aplikasi. Staf loket menginput identitas secara langsung di bawah atau memilih profil simulasi, lalu menentukan nomor antrean fisik.
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* INFORMASI JADWAL BOOKING ONLINE TERVERIFIKASI */}
+      {isBooking && (
+        <div className="p-4 sm:p-5 rounded-2xl bg-teal-50/80 border border-teal-200 flex flex-wrap items-center justify-between gap-3 text-xs">
+          <div className="flex items-center gap-2.5">
+            <div className="p-2 rounded-xl bg-teal-600 text-white shadow-xs">
+              <Clock className="w-5 h-5" />
+            </div>
             <div>
-              {isOnTime ? (
-                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-black bg-emerald-600 text-white shadow-xs">
-                  <CheckCircle2 className="w-4 h-4" />
-                  <span>TEPAT WAKTU (ON-TIME)</span>
-                </span>
-              ) : (
-                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-black bg-amber-600 text-white shadow-xs">
-                  <AlertCircle className="w-4 h-4" />
-                  <span>TERLAMBAT (+{formData.menitKeterlambatan} MENIT)</span>
-                </span>
-              )}
+              <h4 className="font-bold text-sm sm:text-base text-slate-900">
+                Jadwal Kunjungan Booking Online
+              </h4>
+              <p className="text-xs text-slate-600">
+                Jadwal: <strong>{formData.jadwalBooking || 'Hari ini, 08:30 WIB'}</strong> • Jam Kedatangan: <strong>{formData.jamKedatangan || '08:38 WIB'}</strong>
+              </p>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">
-                Keterlambatan Kedatangan Pasien:
-              </label>
-              <select
-                value={formData.menitKeterlambatan}
-                onChange={(e) => onChange({ menitKeterlambatan: Number(e.target.value) })}
-                className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg bg-white font-bold"
-              >
-                <option value={0}>Tepat Waktu (0 menit - Hadir Sesuai Jadwal)</option>
-                <option value={7}>Masuk Toleransi (7 menit keterlambatan &le; 10 menit)</option>
-                <option value={10}>Batas Maksimal Toleransi (Tepat 10 menit)</option>
-                <option value={15}>Terlambat &gt; 10 Menit (15 menit keterlambatan)</option>
-                <option value={30}>Terlambat Tinggi (30 menit keterlambatan)</option>
-              </select>
-            </div>
-
-            {/* Audio call out preview for front-desk */}
-            <div className="bg-white p-2.5 rounded-xl border border-slate-200 flex items-center gap-2 text-xs">
-              <Volume2 className="w-4 h-4 text-teal-600 shrink-0" />
-              <div>
-                <span className="text-[10px] text-slate-400 block font-bold uppercase tracking-wider">
-                  Simulasi Panggilan Antrean Loket / Poli:
-                </span>
-                <span className="font-semibold text-slate-800">
-                  "{formData.noAntrean || 'BOK-012'}, {formData.namaPasien || 'Pasien'}" —{' '}
-                  <span className={isOnTime ? 'text-emerald-700 font-bold' : 'text-amber-700 font-bold'}>
-                    [{isOnTime ? 'Status: On-Time' : `Status: Terlambat ${formData.menitKeterlambatan} Mnt`}]
-                  </span>
-                </span>
-              </div>
-            </div>
-          </div>
+          <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
+            <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+            <span>TERVERIFIKASI SISTEM BOOKING</span>
+          </span>
         </div>
       )}
 

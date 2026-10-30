@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   WizardStepId,
   PatientFormData,
@@ -8,6 +8,8 @@ import {
   AiUsageRecord,
   SessionHistoryItem,
   SimulatedPatient,
+  AppViewMode,
+  AuthSessionUser,
 } from './types';
 import { evaluateTriageRules } from './utils/triageEngine';
 import { Navbar } from './components/Navbar';
@@ -23,8 +25,11 @@ import { SessionHistoryModal } from './components/SessionHistoryModal';
 import { SopReferenceModal } from './components/SopReferenceModal';
 import { DoctorScheduleModal } from './components/DoctorScheduleModal';
 import { MedicalRecordModal } from './components/MedicalRecordModal';
+import { PatientPortalMain } from './components/patient-portal/PatientPortalMain';
+import { AuthLandingPage } from './components/auth/AuthLandingPage';
+import { getActiveSession, logoutAll } from './utils/patientStorage';
 import { SIMULATED_PATIENTS } from './data/simulatedPatients';
-import { AlertCircle, CheckCircle2, X } from 'lucide-react';
+import { AlertCircle, CheckCircle2, X, Smartphone, Building, LogOut } from 'lucide-react';
 
 const INITIAL_FORM_DATA: PatientFormData = {
   // Step 1
@@ -37,8 +42,8 @@ const INITIAL_FORM_DATA: PatientFormData = {
   nomorRekamMedis: 'RM-001049',
   noAntrean: 'BOK-049',
   jadwalBooking: 'Hari ini, 08:30 WIB (Poli Gigi)',
-  jamKedatangan: '08:38 WIB',
-  menitKeterlambatan: 8, // Default 8 menit (masuk toleransi <= 10 menit, On-Time)
+  jamKedatangan: '08:30 WIB',
+  menitKeterlambatan: 0,
 
   // Step 2
   kondisiGawatDarurat: false,
@@ -79,8 +84,27 @@ const INITIAL_FORM_DATA: PatientFormData = {
 };
 
 export default function App() {
+  const [activeSession, setActiveSession] = useState<AuthSessionUser | null>(() => getActiveSession());
+  const [viewMode, setViewMode] = useState<AppViewMode>(() => activeSession?.roleType || 'staff');
   const [currentStep, setCurrentStep] = useState<WizardStepId>(1);
   const [formData, setFormData] = useState<PatientFormData>(INITIAL_FORM_DATA);
+
+  // Sync active session with localStorage
+  useEffect(() => {
+    const handleSessionChange = () => {
+      const sess = getActiveSession();
+      setActiveSession(sess);
+      if (sess) setViewMode(sess.roleType);
+    };
+    window.addEventListener('rsgm-session-changed', handleSessionChange);
+    return () => window.removeEventListener('rsgm-session-changed', handleSessionChange);
+  }, []);
+
+  const handleLogout = () => {
+    logoutAll();
+    setActiveSession(null);
+    showToast('Anda telah keluar dari sistem RSGM Maranatha.');
+  };
 
   // Modals state
   const [isSopModalOpen, setIsSopModalOpen] = useState(false);
@@ -468,14 +492,73 @@ export default function App() {
     showToast('Formulir direset untuk sesi pasien baru.');
   };
 
+  // INITIAL GATE: If no session is active, show the Login & Register landing page first!
+  if (!activeSession) {
+    return (
+      <AuthLandingPage
+        onLoginSuccess={(session) => {
+          setActiveSession(session);
+          setViewMode(session.roleType);
+          showToast(`Berhasil masuk sebagai ${session.staffData?.nama || session.patientData?.nama}`);
+        }}
+      />
+    );
+  }
+
+  // If patient POV is selected, render the dedicated Patient Portal
+  if (viewMode === 'patient') {
+    return (
+      <PatientPortalMain
+        onLogout={handleLogout}
+      />
+    );
+  }
+
   return (
     <div className="min-h-screen bg-slate-100 flex flex-col font-sans text-slate-800 antialiased pb-20 sm:pb-12">
+      {/* Top Formal Staff Information Bar (Strict Staff Access Only) */}
+      <div className="bg-slate-950 text-white px-4 py-2 border-b border-slate-800">
+        <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-2 text-xs">
+          <div className="flex items-center gap-3">
+            <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
+            <span className="font-extrabold text-white tracking-wide">
+              RSGM MARANATHA
+            </span>
+            <span className="text-slate-600 hidden sm:inline">|</span>
+            <span className="text-teal-400 font-semibold hidden sm:inline">
+              SIMRS Front-Desk &amp; Triase Rawat Jalan
+            </span>
+
+            {activeSession?.staffData && (
+              <span className="inline-flex items-center gap-1.5 text-slate-300 border-l border-slate-800 pl-3">
+                <span className="text-[11px] text-slate-400">Petugas:</span>
+                <strong className="text-teal-300 font-bold">{activeSession.staffData.nama}</strong>
+                <span className="text-[10px] text-slate-400 font-mono">({activeSession.staffData.unitKerja})</span>
+              </span>
+            )}
+          </div>
+
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={handleLogout}
+              className="px-3 py-1.5 bg-rose-950/60 hover:bg-rose-900 text-rose-300 hover:text-white font-bold rounded-lg transition-colors flex items-center gap-1.5 border border-rose-800/60 shadow-xs"
+              title="Keluar dari sesi petugas RSGM Maranatha"
+            >
+              <LogOut className="w-3.5 h-3.5" />
+              <span>Keluar (Logout)</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
       {/* Top Formal Navbar with Hamburger Drawer & Quick Action Links */}
       <Navbar
         currentStep={currentStep}
         aiUsedCount={aiUsedCount}
         aiIgnoredCount={aiIgnoredCount}
         historyCount={sessionHistory.length}
+        currentStaff={activeSession?.staffData}
         onOpenSopModal={() => setIsSopModalOpen(true)}
         onOpenHistoryModal={() => setIsHistoryModalOpen(true)}
         onOpenDoctorScheduleModal={() => setIsDoctorScheduleModalOpen(true)}
@@ -493,6 +576,7 @@ export default function App() {
           setIsAiDrawerOpen(true);
         }}
         onResetWizard={handleResetWizard}
+        onLogout={handleLogout}
       />
 
       {/* Clean Formal Wizard Progress Line */}

@@ -202,3 +202,85 @@ export interface SopRule {
   kondisiIf: string;
   tindakanThen: string;
 }
+
+export type AppViewMode = 'staff' | 'patient';
+
+export interface StaffAccount {
+  id: string;
+  nip: string;
+  username: string;
+  nama: string;
+  role: 'admin' | 'staf_loket' | 'perawat_triase';
+  unitKerja: string;
+  password?: string;
+}
+
+export interface AuthSessionUser {
+  roleType: 'staff' | 'patient';
+  staffData?: StaffAccount;
+  patientData?: PatientAccount;
+}
+
+export interface PatientAccount {
+  nik: string;
+  nama: string;
+  nomorRekamMedis: string;
+  telepon: string;
+  email?: string;
+  password?: string;
+  tanggalLahir: string;
+  jenisKelamin: 'Laki-laki' | 'Perempuan';
+  golonganDarah: string;
+  alamat: string;
+  riwayatKesehatan: PatientRiwayatKesehatan;
+}
+
+export interface HospitalAppointment {
+  id: string; // e.g. BOK-20250101-01
+  patientNik: string;
+  patientNama: string;
+  nomorRekamMedis: string;
+  tanggalLahir: string;
+  telepon: string;
+  poli: 'Poli Umum' | 'Poli Gigi' | 'Poli Gigi Anak';
+  dokterId: string;
+  namaDokter: string;
+  tanggalKunjungan: string;
+  jamKunjungan: string;
+  sesi: 'Pagi' | 'Sore';
+  nomorAntrean: string;
+  keluhanUtama: string;
+  riwayatKesehatan: PatientRiwayatKesehatan;
+  jenisPenjamin: 'umum' | 'bpjs' | 'asuransi_swasta';
+  status: 'Menunggu Kedatangan' | 'Sedang Dilayani' | 'Selesai' | 'Dibatalkan';
+  statusPanggilan?: 'Belum Dipanggil' | 'Sedang Dipanggil di Loket' | 'Dipanggil ke Poli';
+  menitKeterlambatan?: number;
+  biayaEstimasi: number;
+  statusPembayaran: 'Menunggu Pembayaran' | 'Lunas';
+  metodePembayaran?: string;
+  waktuPembayaran?: string;
+  createdAt: string;
+}
+
+export interface PatientBillingItem {
+  deskripsi: string;
+  kategori: 'Pendaftaran' | 'Jasa Medis' | 'Tindakan' | 'Farmasi' | 'Lainnya';
+  biaya: number;
+}
+
+export interface PatientBillingRecord {
+  id: string;
+  appointmentId: string;
+  nomorAntrean: string;
+  patientNama: string;
+  nomorRekamMedis: string;
+  poli: string;
+  dokter: string;
+  tanggal: string;
+  items: PatientBillingItem[];
+  totalBiaya: number;
+  statusPembayaran: 'Menunggu Pembayaran' | 'Lunas';
+  metodePembayaran?: 'QRIS' | 'Transfer Virtual Account' | 'Kasir Loket RSGM';
+  waktuPembayaran?: string;
+  kodeReferensi?: string;
+}

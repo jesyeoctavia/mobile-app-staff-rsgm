@@ -13,20 +13,24 @@ import {
   PhoneCall,
   User,
   ChevronRight,
+  Smartphone,
+  LogOut,
 } from 'lucide-react';
-import { WizardStepId } from '../types';
+import { WizardStepId, StaffAccount } from '../types';
 
 interface NavbarProps {
   currentStep: WizardStepId;
   aiUsedCount: number;
   aiIgnoredCount: number;
   historyCount: number;
+  currentStaff?: StaffAccount | null;
   onOpenSopModal: () => void;
   onOpenHistoryModal: () => void;
   onOpenDoctorScheduleModal: () => void;
   onOpenMedicalRecordModal: () => void;
   onOpenAiDrawer: () => void;
   onResetWizard: () => void;
+  onLogout?: () => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -34,12 +38,14 @@ export const Navbar: React.FC<NavbarProps> = ({
   aiUsedCount,
   aiIgnoredCount,
   historyCount,
+  currentStaff,
   onOpenSopModal,
   onOpenHistoryModal,
   onOpenDoctorScheduleModal,
   onOpenMedicalRecordModal,
   onOpenAiDrawer,
   onResetWizard,
+  onLogout,
 }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
@@ -128,8 +134,24 @@ export const Navbar: React.FC<NavbarProps> = ({
               </button>
             </nav>
 
-            {/* Right: AI Counter */}
+            {/* Right: Staff Info, Switch to Patient POV, AI Counter & Logout */}
             <div className="flex items-center space-x-2">
+              {currentStaff && (
+                <div className="hidden xl:flex items-center gap-2 px-2.5 py-1 bg-slate-800/90 rounded-xl border border-slate-700 text-xs">
+                  <div className="w-6 h-6 rounded-lg bg-teal-500/20 text-teal-300 flex items-center justify-center font-bold text-[10px]">
+                    {currentStaff.role === 'admin' ? 'ADM' : 'STF'}
+                  </div>
+                  <div className="text-left">
+                    <span className="font-bold text-white block leading-tight truncate max-w-[130px]">
+                      {currentStaff.nama.split(' ')[0]} {currentStaff.nama.split(' ')[1] || ''}
+                    </span>
+                    <span className="text-[10px] text-teal-400 block font-medium capitalize">
+                      {currentStaff.role.replace('_', ' ')}
+                    </span>
+                  </div>
+                </div>
+              )}
+
               <div
                 onClick={onOpenAiDrawer}
                 role="button"
@@ -143,6 +165,18 @@ export const Navbar: React.FC<NavbarProps> = ({
                 <span className="text-slate-600">,</span>
                 <span className="font-semibold text-slate-400">{aiIgnoredCount} diabaikan</span>
               </div>
+
+              {onLogout && (
+                <button
+                  type="button"
+                  onClick={onLogout}
+                  title="Keluar dari Sesi Staf RSGM"
+                  className="px-2.5 py-1.5 bg-slate-800 hover:bg-rose-950/80 hover:text-rose-300 text-slate-300 border border-slate-700 hover:border-rose-700/60 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shadow-xs"
+                >
+                  <LogOut className="w-3.5 h-3.5 text-rose-400" />
+                  <span className="hidden sm:inline">Keluar</span>
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -301,6 +335,22 @@ export const Navbar: React.FC<NavbarProps> = ({
                 <ChevronRight className="w-4 h-4 text-indigo-500" />
               </button>
             </div>
+
+            {onLogout && (
+              <div className="p-3 border-t border-slate-800">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsMenuOpen(false);
+                    onLogout();
+                  }}
+                  className="w-full py-2.5 px-3 rounded-xl bg-rose-950/40 hover:bg-rose-900/60 border border-rose-800/60 text-rose-300 font-bold text-xs flex items-center justify-center gap-2 transition-colors"
+                >
+                  <LogOut className="w-4 h-4 text-rose-400" />
+                  <span>Keluar dari Sesi Staf / Admin</span>
+                </button>
+              </div>
+            )}
 
             {/* Drawer Footer Info */}
             <div className="p-4 border-t border-slate-800 text-[11px] text-slate-400 space-y-1 bg-slate-950/40">
