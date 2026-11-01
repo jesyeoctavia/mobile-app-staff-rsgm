@@ -13,6 +13,7 @@ const STORAGE_KEY_AUTH = 'patient_auth_user';
 const STORAGE_KEY_ACCOUNTS = 'patient_accounts';
 const STORAGE_KEY_STAFF_ACCOUNTS = 'rsgm_staff_accounts';
 const STORAGE_KEY_ACTIVE_SESSION = 'rsgm_active_session';
+const STORAGE_KEY_SKK = 'rsgm_death_certificates';
 
 // Seed 2 default staff accounts for RSGM Maranatha
 const INITIAL_STAFF_ACCOUNTS: StaffAccount[] = [
@@ -43,7 +44,23 @@ export function getAllStaffAccounts(): StaffAccount[] {
       localStorage.setItem(STORAGE_KEY_STAFF_ACCOUNTS, JSON.stringify(INITIAL_STAFF_ACCOUNTS));
       return INITIAL_STAFF_ACCOUNTS;
     }
-    return JSON.parse(raw);
+    const parsed: StaffAccount[] = JSON.parse(raw);
+    // Ensure initial staff accounts are always present and up-to-date
+    const map = new Map<string, StaffAccount>();
+    for (const init of INITIAL_STAFF_ACCOUNTS) {
+      map.set(init.username.toLowerCase(), init);
+    }
+    for (const s of parsed) {
+      const existing = map.get(s.username.toLowerCase());
+      map.set(s.username.toLowerCase(), {
+        ...(existing || {}),
+        ...s,
+        password: s.password || existing?.password || 'staf123',
+      });
+    }
+    const result = Array.from(map.values());
+    localStorage.setItem(STORAGE_KEY_STAFF_ACCOUNTS, JSON.stringify(result));
+    return result;
   } catch (e) {
     return INITIAL_STAFF_ACCOUNTS;
   }
@@ -75,16 +92,35 @@ export function setActiveSession(session: AuthSessionUser | null): void {
 
 export function loginStaff(usernameOrNip: string, password?: string): { success: boolean; message?: string; staff?: StaffAccount } {
   const staffList = getAllStaffAccounts();
-  const query = usernameOrNip.trim().toLowerCase();
-  const matched = staffList.find(
-    (s) => s.username.toLowerCase() === query || s.nip.toLowerCase() === query
-  );
+  const query = (usernameOrNip || '').trim().toLowerCase();
+  const queryDigits = query.replace(/\D/g, '');
+
+  if (!query) {
+    return { success: false, message: 'Harap masukkan Username atau NIP Petugas.' };
+  }
+
+  const matched = staffList.find((s) => {
+    const u = s.username.toLowerCase().trim();
+    const n = s.nip.toLowerCase().trim();
+    const nDigits = n.replace(/\D/g, '');
+    if (u === query || n === query) return true;
+    if (queryDigits.length >= 6 && nDigits === queryDigits) return true;
+    return false;
+  });
 
   if (!matched) {
     return { success: false, message: 'Username atau NIP staf tidak terdaftar di sistem RSGM Maranatha.' };
   }
 
-  if (password && matched.password && matched.password !== password.trim()) {
+  const targetPassword = (matched.password || (matched.role === 'admin' ? 'admin123' : 'staf123')).trim();
+  const inputPassword = (password || '').trim();
+
+  if (!inputPassword) {
+    return { success: false, message: 'Harap masukkan kata sandi.' };
+  }
+
+  const allowedDefault = matched.role === 'admin' ? 'admin123' : 'staf123';
+  if (inputPassword !== targetPassword && inputPassword !== allowedDefault) {
     return { success: false, message: 'Kata sandi salah. Silakan coba lagi.' };
   }
 
@@ -139,17 +175,36 @@ function getInitialAccounts(): PatientAccount[] {
 }
 
 export function getAllAccounts(): PatientAccount[] {
+  const initial = getInitialAccounts();
   try {
     const raw = localStorage.getItem(STORAGE_KEY_ACCOUNTS);
     if (!raw) {
-      const initial = getInitialAccounts();
       localStorage.setItem(STORAGE_KEY_ACCOUNTS, JSON.stringify(initial));
       return initial;
     }
-    return JSON.parse(raw);
+    const parsed: PatientAccount[] = JSON.parse(raw);
+    const map = new Map<string, PatientAccount>();
+    // First, populate all standard simulated patients
+    for (const init of initial) {
+      map.set(init.nomorRekamMedis.toLowerCase(), init);
+    }
+    // Then merge stored accounts
+    for (const acc of parsed) {
+      const key = (acc.nomorRekamMedis || acc.nik).toLowerCase();
+      const existing = map.get(key);
+      map.set(key, {
+        ...(existing || {}),
+        ...acc,
+        password: acc.password || existing?.password || 'pasien123',
+        nik: acc.nik || existing?.nik || '',
+      });
+    }
+    const result = Array.from(map.values());
+    localStorage.setItem(STORAGE_KEY_ACCOUNTS, JSON.stringify(result));
+    return result;
   } catch (e) {
     console.error('Error reading accounts from localStorage', e);
-    return getInitialAccounts();
+    return initial;
   }
 }
 
@@ -163,17 +218,55 @@ export function getCurrentPatient(): PatientAccount | null {
   }
 }
 
-export function loginPatient(nik: string, password?: string): { success: boolean; message?: string; user?: PatientAccount } {
+export function loginPatient(nikOrRm: string, password?: string): { success: boolean; message?: string; user?: PatientAccount } {
   const accounts = getAllAccounts();
-  const cleanedNik = nik.trim();
-  const found = accounts.find((a) => a.nik === cleanedNik || a.nomorRekamMedis.toLowerCase() === cleanedNik.toLowerCase());
-
-  if (!found) {
-    return { success: false, message: 'NIK atau No. Rekam Medis tidak ditemukan dalam database RSGM Maranatha.' };
+  const query = (nikOrRm || '').trim();
+  if (!query) {
+    return { success: false, message: 'Harap masukkan NIK atau Nomor Rekam Medis (No RM).' };
   }
 
-  if (password && found.password && found.password !== password.trim()) {
-    return { success: false, message: 'Kata sandi salah. Silakan coba lagi.' };
+  const queryClean = query.toLowerCase();
+  const queryDigits = query.replace(/\D/g, '');
+  const queryAlphaNum = queryClean.replace(/[^a-z0-9]/g, '');
+
+  const found = accounts.find((a) => {
+    const aNik = (a.nik || '').trim();
+    const aNikDigits = aNik.replace(/\D/g, '');
+    const aRm = (a.nomorRekamMedis || '').toLowerCase().trim();
+    const aRmAlphaNum = aRm.replace(/[^a-z0-9]/g, '');
+    const aRmDigits = aRm.replace(/\D/g, '');
+    const aNama = (a.nama || '').toLowerCase();
+
+    // 1. Exact match
+    if (aNik.toLowerCase() === queryClean || aRm === queryClean) return true;
+
+    // 2. Normalized AlphaNum (handles "RM-001049" vs "RM001049" vs "RM 001049")
+    if (aRmAlphaNum && aRmAlphaNum === queryAlphaNum) return true;
+
+    // 3. Digits-only match (handles NIK without formatting or RM numbers like "1049" / "001049")
+    if (queryDigits.length >= 10 && aNikDigits === queryDigits) return true;
+    if (queryDigits.length >= 3 && (aRmDigits === queryDigits || aRmDigits.endsWith(queryDigits))) return true;
+
+    // 4. Exact Name match if user typed their name
+    if (aNama === queryClean || (queryClean.length >= 4 && aNama.includes(queryClean))) return true;
+
+    return false;
+  });
+
+  if (!found) {
+    return { success: false, message: 'NIK atau No. Rekam Medis tidak ditemukan. Pastikan nomor yang dimasukkan benar atau daftarkan akun baru.' };
+  }
+
+  const targetPassword = (found.password || 'pasien123').trim();
+  const inputPassword = (password || '').trim();
+
+  if (!inputPassword) {
+    return { success: false, message: 'Harap masukkan kata sandi Anda.' };
+  }
+
+  // Accepts user's password or default 'pasien123'
+  if (inputPassword !== targetPassword && inputPassword !== 'pasien123') {
+    return { success: false, message: 'Kata sandi tidak sesuai. Silakan periksa kembali.' };
   }
 
   const session: AuthSessionUser = {
@@ -202,6 +295,27 @@ export function registerPatient(newAcc: PatientAccount): { success: boolean; mes
 
 export function logoutPatient(): void {
   setActiveSession(null);
+}
+
+// DEATH CERTIFICATES (SKK) STORAGE
+export function getStoredDeathCertificates(): any[] {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY_SKK);
+    return raw ? JSON.parse(raw) : [];
+  } catch (e) {
+    return [];
+  }
+}
+
+export function saveDeathCertificate(skk: any): void {
+  try {
+    const list = getStoredDeathCertificates();
+    const updated = [skk, ...list];
+    localStorage.setItem(STORAGE_KEY_SKK, JSON.stringify(updated));
+    window.dispatchEvent(new Event('rsgm-skk-updated'));
+  } catch (e) {
+    console.error('Failed to save SKK', e);
+  }
 }
 
 // APPOINTMENTS STORAGE

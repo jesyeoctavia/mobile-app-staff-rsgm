@@ -385,7 +385,7 @@ export const AuthLandingPage: React.FC<AuthLandingPageProps> = ({ onLoginSuccess
                           type="password"
                           value={staffPassword}
                           onChange={(e) => setStaffPassword(e.target.value)}
-                          placeholder="Masukkan kata sandi (demo: admin123 atau staf123)"
+                          placeholder="Masukkan kata sandi petugas"
                           className="w-full pl-10 pr-4 py-2.5 text-xs sm:text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-teal-500 focus:outline-none"
                         />
                       </div>
@@ -398,28 +398,6 @@ export const AuthLandingPage: React.FC<AuthLandingPageProps> = ({ onLoginSuccess
                       <LogIn className="w-4 h-4" />
                       <span>Masuk ke Dashboard Staf SIMRS</span>
                     </button>
-
-                    {/* 2 Staff Accounts Reference Box */}
-                    <div className="pt-3 border-t border-slate-200">
-                      <div className="bg-slate-50 p-3.5 rounded-2xl border border-slate-200 text-xs text-slate-600 space-y-2">
-                        <div className="font-bold text-slate-800 flex items-center gap-1.5">
-                          <ShieldCheck className="w-4 h-4 text-teal-600" />
-                          <span>2 Akun Staf / Admin Resmi (Ketik untuk Masuk):</span>
-                        </div>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px]">
-                          <div className="p-2.5 bg-white rounded-xl border border-slate-200 shadow-2xs">
-                            <span className="font-bold text-slate-900 block">Akun 1: Administrator SIMRS</span>
-                            <span className="text-slate-600 block mt-0.5">Username: <code className="font-mono font-bold text-teal-700 bg-teal-50 px-1 py-0.5 rounded">admin</code></span>
-                            <span className="text-slate-600 block mt-0.5">Password: <code className="font-mono font-bold text-teal-700 bg-teal-50 px-1 py-0.5 rounded">admin123</code></span>
-                          </div>
-                          <div className="p-2.5 bg-white rounded-xl border border-slate-200 shadow-2xs">
-                            <span className="font-bold text-slate-900 block">Akun 2: Staf Loket &amp; Triase</span>
-                            <span className="text-slate-600 block mt-0.5">Username: <code className="font-mono font-bold text-teal-700 bg-teal-50 px-1 py-0.5 rounded">staf_loket</code></span>
-                            <span className="text-slate-600 block mt-0.5">Password: <code className="font-mono font-bold text-teal-700 bg-teal-50 px-1 py-0.5 rounded">staf123</code></span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
                   </form>
                 ) : (
                   <form onSubmit={handleStaffRegister} className="space-y-4">
@@ -524,12 +502,12 @@ export const AuthLandingPage: React.FC<AuthLandingPageProps> = ({ onLoginSuccess
                           type="text"
                           value={patientNik}
                           onChange={(e) => setPatientNik(e.target.value)}
-                          placeholder="Contoh: 3171011405920001 atau RM-001049"
+                          placeholder="Masukkan 16 digit NIK atau Nomor Rekam Medis (No RM)"
                           className="w-full pl-10 pr-4 py-2.5 text-xs sm:text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-teal-500 focus:outline-none font-mono"
                         />
                       </div>
                       <span className="text-[11px] text-slate-500 mt-1 block">
-                        Pasien yang sudah pernah berobat di RSGM Maranatha dapat memasukkan No RM atau NIK.
+                        Pasien yang sudah memiliki rekam medis dapat memasukkan No RM atau NIK KTP.
                       </span>
                     </div>
 
@@ -543,7 +521,7 @@ export const AuthLandingPage: React.FC<AuthLandingPageProps> = ({ onLoginSuccess
                           type="password"
                           value={patientPassword}
                           onChange={(e) => setPatientPassword(e.target.value)}
-                          placeholder="Masukkan kata sandi (demo: pasien123)"
+                          placeholder="Masukkan kata sandi akun Anda"
                           className="w-full pl-10 pr-4 py-2.5 text-xs sm:text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-teal-500 focus:outline-none"
                         />
                       </div>
@@ -556,30 +534,6 @@ export const AuthLandingPage: React.FC<AuthLandingPageProps> = ({ onLoginSuccess
                       <LogIn className="w-4 h-4" />
                       <span>Masuk ke Portal Pasien Mandiri</span>
                     </button>
-
-                    {/* 2 Patient Accounts Reference Box */}
-                    <div className="pt-3 border-t border-slate-200">
-                      <div className="bg-slate-50 p-3.5 rounded-2xl border border-slate-200 text-xs text-slate-600 space-y-2">
-                        <div className="font-bold text-slate-800 flex items-center gap-1.5">
-                          <User className="w-4 h-4 text-teal-600" />
-                          <span>2 Akun Pasien Terdaftar (Ketik NIK/No RM untuk Masuk):</span>
-                        </div>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px]">
-                          <div className="p-2.5 bg-white rounded-xl border border-slate-200 shadow-2xs">
-                            <span className="font-bold text-slate-900 block">Pasien 1: Poli Gigi &amp; Mulut</span>
-                            <span className="text-slate-600 block mt-0.5">No RM: <code className="font-mono font-bold text-teal-700 bg-teal-50 px-1 py-0.5 rounded">RM-001049</code></span>
-                            <span className="text-slate-600 block mt-0.5">NIK: <code className="font-mono font-bold text-slate-700">3171011405920001</code></span>
-                            <span className="text-slate-600 block mt-0.5">Password: <code className="font-mono font-bold text-teal-700 bg-teal-50 px-1 py-0.5 rounded">pasien123</code></span>
-                          </div>
-                          <div className="p-2.5 bg-white rounded-xl border border-slate-200 shadow-2xs">
-                            <span className="font-bold text-slate-900 block">Pasien 2: Poli Umum</span>
-                            <span className="text-slate-600 block mt-0.5">No RM: <code className="font-mono font-bold text-teal-700 bg-teal-50 px-1 py-0.5 rounded">RM-001052</code></span>
-                            <span className="text-slate-600 block mt-0.5">NIK: <code className="font-mono font-bold text-slate-700">3171022209880003</code></span>
-                            <span className="text-slate-600 block mt-0.5">Password: <code className="font-mono font-bold text-teal-700 bg-teal-50 px-1 py-0.5 rounded">pasien123</code></span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
                   </form>
                 ) : (
                   <form onSubmit={handlePatientRegister} className="space-y-4">

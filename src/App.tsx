@@ -25,6 +25,7 @@ import { SessionHistoryModal } from './components/SessionHistoryModal';
 import { SopReferenceModal } from './components/SopReferenceModal';
 import { DoctorScheduleModal } from './components/DoctorScheduleModal';
 import { MedicalRecordModal } from './components/MedicalRecordModal';
+import { StaffPatientStatusManager } from './components/StaffPatientStatusManager';
 import { PatientPortalMain } from './components/patient-portal/PatientPortalMain';
 import { AuthLandingPage } from './components/auth/AuthLandingPage';
 import { getActiveSession, logoutAll } from './utils/patientStorage';
@@ -603,6 +604,14 @@ export default function App() {
 
       {/* Main Container */}
       <main className="flex-1 max-w-4xl w-full mx-auto p-4 sm:p-6 lg:p-8">
+        {/* Modul Penanganan Status Pasien: Walk-In Timer & Fast-Track Emergency & SKK */}
+        <StaffPatientStatusManager
+          formData={formData}
+          onChange={handleUpdateFormData}
+          currentStaff={activeSession?.staffData}
+          onShowToast={showToast}
+        />
+
         {currentStep === 1 && (
           <Step1PatientIdentity
             formData={formData}

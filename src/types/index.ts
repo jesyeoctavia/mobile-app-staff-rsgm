@@ -154,6 +154,44 @@ export interface PatientFormData {
   tujuanKhusus: 'pemeriksaan_poli' | 'resep_kronis' | 'admin_surat_lab';
   batalKunjungan: boolean;
   kendalaKomplain: boolean;
+
+  // Modul Penanganan Status Pasien Khusus (Fast-Track IGD & Pelayanan Khusus)
+  isFastTrackEmergency?: boolean;
+  idSementara?: 'Tn. X' | 'Ny. X' | 'An. X' | string;
+  statusPelayananKhusus?: 'normal' | 'fast_track_igd' | 'meninggal_dunia';
+  waktuKematian?: string;
+  dataRegistrasiStabilDiupdate?: boolean;
+  keluargaPenanggungJawab?: string;
+  kontakDarurat?: string;
+  durasiInputDetik?: number;
+  alasanBypassTimer?: string;
+}
+
+export type StaffTimerColor = 'hijau' | 'kuning' | 'merah';
+
+export interface SuratKeteranganKematian {
+  id: string;
+  nomorSurat: string;
+  tanggalMeninggal: string;
+  jamMeninggal: string;
+  lokasiMeninggal: string;
+  namaJenazah: string;
+  nomorRekamMedis: string;
+  nik?: string;
+  jenisKelamin: string;
+  umurTahun: number | string;
+  alamat?: string;
+  klasifikasiKematian: 'DOA' | 'Tindakan_IGD' | 'Rawat_Inap';
+  penyebabKematianLangsung: string;
+  penyebabKematianAntara: string;
+  penyebabKematianDasar: string;
+  dokterPemeriksa: string;
+  sipDokter: string;
+  petugasPelapor: string;
+  penerimaJenazah: string;
+  hubunganPenerima: string;
+  waktuDibuat: string;
+  catatanKhusus?: string;
 }
 
 export interface HealthHistoryRuleAlert {
