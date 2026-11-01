@@ -40,83 +40,6 @@ export const Step3Complaint: React.FC<Step3ComplaintProps> = ({
 }) => {
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div>
-        <h2 className="text-lg sm:text-xl font-bold text-slate-900">
-          Langkah 3: Keluhan Utama Pasien
-        </h2>
-        <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
-          Ketik teks bebas keluhan pasien dan tentukan kejelasan serta poli yang sesuai.
-        </p>
-      </div>
-
-      {/* Free Text Input from Staff */}
-      <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-xs space-y-3">
-        <div className="flex items-center justify-between">
-          <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">
-            Teks Bebas Keluhan (Diktat / Input Staf Loket) *
-          </label>
-          <span className="text-[11px] text-slate-400">
-            Privasi: Hanya teks keluhan (tanpa nama, riwayat, atau identitas pasien)
-          </span>
-        </div>
-
-        <textarea
-          rows={3}
-          value={formData.teksKeluhanBebas}
-          onChange={(e) => {
-            onChange({ teksKeluhanBebas: e.target.value });
-            if (!formData.ringkasanKeluhan) {
-              onChange({ teksKeluhanBebas: e.target.value, ringkasanKeluhan: e.target.value });
-            }
-          }}
-          placeholder="Ketik keterangan bebas dari pasien di sini... contoh: 'Gigi geraham belakang kanan nyeri berdenyut sejak 3 hari, sekarang pipi sebelah kanan bengkak dan agak sulit membuka mulut saat makan.'"
-          className="w-full text-xs sm:text-sm border border-slate-300 rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-        />
-
-        {/* Simulasi cepat input keluhan */}
-        <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
-          <div className="flex gap-1.5 flex-wrap">
-            <span className="text-[11px] text-slate-400 self-center">Simulasi cepat:</span>
-            <button
-              type="button"
-              onClick={() =>
-                onChange({
-                  teksKeluhanBebas:
-                    'Pasien mengeluh gigi geraham kanan bawah sangat sakit sejak 3 hari, wajah kanan bengkak besar dan sulit membuka mulut.',
-                })
-              }
-              className="px-2 py-1 text-[11px] bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-md border border-slate-200"
-            >
-              Gigi Bengkak &amp; Trismus (Bahaya)
-            </button>
-            <button
-              type="button"
-              onClick={() =>
-                onChange({
-                  teksKeluhanBebas:
-                    'Gigi depan berlubang sedikit dan ngilu jika minum air dingin sejak 1 minggu lalu.',
-                })
-              }
-              className="px-2 py-1 text-[11px] bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-md border border-slate-200"
-            >
-              Gigi Ngilu Biasa (Poli Gigi)
-            </button>
-            <button
-              type="button"
-              onClick={() =>
-                onChange({
-                  teksKeluhanBebas:
-                    'Badan terasa meriang sejak kemarin, batuk kering dan kepala pusing.',
-                })
-              }
-              className="px-2 py-1 text-[11px] bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-md border border-slate-200"
-            >
-              Demam &amp; Batuk (Poli Umum)
-            </button>
-          </div>
-        </div>
-      </div>
 
       {/* KARTU SARAN AI (Jika sudah digenerate) */}
       {complaintSuggestion && (
@@ -411,8 +334,7 @@ export const Step3Complaint: React.FC<Step3ComplaintProps> = ({
         <button
           type="button"
           onClick={onNext}
-          disabled={!formData.teksKeluhanBebas.trim()}
-          className="inline-flex items-center gap-1.5 px-6 py-2.5 bg-teal-600 hover:bg-teal-700 disabled:bg-slate-300 text-white text-xs sm:text-sm font-bold rounded-xl transition-colors shadow-xs"
+          className="inline-flex items-center gap-1.5 px-6 py-2.5 bg-teal-600 hover:bg-teal-700 text-white text-xs sm:text-sm font-bold rounded-xl transition-colors shadow-xs"
         >
           <span>Lanjut ke Penjaminan</span>
           <ArrowRight className="w-4 h-4" />

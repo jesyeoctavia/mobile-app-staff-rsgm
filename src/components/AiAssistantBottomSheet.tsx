@@ -465,7 +465,18 @@ export const AiAssistantBottomSheet: React.FC<AiAssistantBottomSheetProps> = ({
                   <input
                     type="text"
                     value={patientSearchQuery}
-                    onChange={(e) => setPatientSearchQuery(e.target.value)}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setPatientSearchQuery(val);
+                      if (val.trim()) {
+                        const results = searchSimulatedPatients(val);
+                        setPatientCandidates(results);
+                        setHasSearchedPatient(true);
+                      } else {
+                        setPatientCandidates([]);
+                        setHasSearchedPatient(false);
+                      }
+                    }}
                     onKeyDown={(e) => e.key === 'Enter' && handleSearchPatient()}
                     placeholder="Ketik nama pasien, No RM (misal: 1049), atau NIK..."
                     className="w-full pl-9 pr-3 py-2 text-xs sm:text-sm border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-sky-500"
